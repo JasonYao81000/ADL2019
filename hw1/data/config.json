@@ -1,0 +1,6 @@
+{
+    "train_json_path": "../data/train.json",
+    "valid_json_path": "../data/valid.json",
+    "test_json_path": "../data/test.json",
+    "embedding_vec_path": "../data/crawl-300d-2M.vec"
+}

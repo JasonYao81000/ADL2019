@@ -1,0 +1,9 @@
+{
+    "arch": "ExampleNet",
+    "train": "../data/train.pkl",
+    "test": "../data/test.pkl",
+    "model_parameters": {
+        "valid": "../data/valid.pkl",
+        "embedding": "../data/embedding.pkl"
+    }
+}
