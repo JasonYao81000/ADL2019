@@ -1,9 +1,10 @@
 import json
 import logging
-from multiprocessing import Pool
+from multiprocessing.dummy import Pool
 from dataset import DialogDataset
 from tqdm import tqdm
-
+# Import for the tokenize.
+import spacy
 
 class Preprocessor:
     """
@@ -14,6 +15,8 @@ class Preprocessor:
     def __init__(self, embedding):
         self.embedding = embedding
         self.logging = logging.getLogger(name=__name__)
+        # Load the language model, 'en' is for English.
+        self.nlp = spacy.load('en')
 
     def tokenize(self, sentence):
         """ Tokenize a sentence.
@@ -23,7 +26,15 @@ class Preprocessor:
             indices (list of str): List of tokens in a sentence.
         """
         # TODO
-        pass
+        # Parse and tokenize a string.
+        doc = self.nlp(sentence)
+        
+        # Use .text to recreate your original string.
+        indices = list()
+        for token in doc:
+            indices.append(token.text)
+            
+        return indices
 
     def sentence_to_indices(self, sentence):
         """ Convert sentence to its word indices.
@@ -34,7 +45,10 @@ class Preprocessor:
         """
         # TODO
         # Hint: You can use `self.embedding`
-        pass
+        indices = list()
+        for word in sentence:
+            indices.append(self.embedding.to_index(word))
+        return indices
 
     def collect_words(self, data_path, n_workers=4):
         with open(data_path) as f:
@@ -50,8 +64,8 @@ class Preprocessor:
             )
         utterances = list(set(utterances))
         chunks = [
-            ' '.join(utterances[i:i + len(utterances) // n_workers])
-            for i in range(0, len(utterances), len(utterances) // n_workers)
+            ' '.join(utterances[i:i + len(utterances) // (n_workers * 16)])
+            for i in range(0, len(utterances), len(utterances) // (n_workers * 16))
         ]
         with Pool(n_workers) as pool:
             chunks = pool.map_async(self.tokenize, chunks)

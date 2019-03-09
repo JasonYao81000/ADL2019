@@ -90,7 +90,7 @@ class Embedding:
 
         vectors = []
 
-        with open(embedding_path) as fp:
+        with open(embedding_path, encoding='utf-8') as fp:
 
             row1 = fp.readline()
             # if the first row is not header

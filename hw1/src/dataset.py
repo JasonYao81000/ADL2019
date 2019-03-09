@@ -1,4 +1,5 @@
 import random
+random.seed(9487)
 import torch
 from torch.utils.data import Dataset
 
@@ -45,10 +46,10 @@ class DialogDataset(Dataset):
             n_negative = min(len(negatives), self.n_negative)
 
         # TODO: sample positive indices
-        positive_indices = [0]
+        positive_indices = random.sample(range(len(positive_ids)), k=n_positive)
 
         # TODO: sample negative indices
-        negative_indices = [1, 2, 3, 4]
+        negative_indices = random.sample(range(len(negative_ids)), k=n_negative)
 
         # collect sampled options
         data['options'] = (
@@ -115,4 +116,8 @@ def pad_to_len(arr, padded_len, padding=0):
         padding (int): Integer used to pad.
     """
     # TODO
-    return []
+    if len(arr) < padded_len:
+        result = arr + [padding] * (padded_len - len(arr))
+    else:
+        result = arr[:padded_len]
+    return result

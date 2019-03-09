@@ -20,14 +20,14 @@ def main(args):
 
     # collect words appear in the data
     words = set()
-    logging.info('collecting words from {}'.format(config['valid_json_path']))
-    words |= preprocessor.collect_words(config['test_json_path'],
-                                        n_workers=args.n_workers)
     logging.info('collecting words from {}'.format(config['train_json_path']))
     words |= preprocessor.collect_words(config['train_json_path'],
                                         n_workers=args.n_workers)
-    logging.info('collecting words from {}'.format(config['test_json_path']))
+    logging.info('collecting words from {}'.format(config['valid_json_path']))
     words |= preprocessor.collect_words(config['valid_json_path'],
+                                        n_workers=args.n_workers)
+    logging.info('collecting words from {}'.format(config['test_json_path']))
+    words |= preprocessor.collect_words(config['test_json_path'],
                                         n_workers=args.n_workers)
 
     # load embedding only for words in the data

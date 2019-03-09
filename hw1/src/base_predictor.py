@@ -39,7 +39,7 @@ class BasePredictor():
             # TODO: create dataloader for `train`.
             # You can set batch_size as `self.batch_size` here,
             # and `collate_fn=collate_fn`.
-            dataloader = None
+            dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=self.batch_size, collate_fn=collate_fn)
 
             # train epoch
             log_train = self._run_epoch(dataloader, True)
@@ -51,6 +51,7 @@ class BasePredictor():
                 # You can set batch_size as `self.batch_size` here,
                 # and `collate_fn=collate_fn`.
                 # evaluate model
+                dataloader = torch.utils.data.DataLoader(dataset=self.valid, batch_size=self.batch_size, collate_fn=collate_fn)
                 log_valid = self._run_epoch(dataloader, False)
             else:
                 log_valid = None
@@ -77,7 +78,7 @@ class BasePredictor():
         # You can set batch_size as `self.batch_size` here,
         # and `collate_fn=collate_fn`.
         # evaluate model
-        dataloader = None
+        dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=self.batch_size, collate_fn=collate_fn)
 
         ys_ = []
         with torch.no_grad():
@@ -98,7 +99,10 @@ class BasePredictor():
 
     def load(self, path):
         # TODO: Load saved model from path here.
-        pass
+        torch_dict = torch.load(path)
+        self.epoch = torch_dict['epoch']
+        self.model.load_state_dict(torch_dict['model'])
+        self.optimizer.load_state_dict(torch_dict['optimizer'])
 
     def _run_epoch(self, dataloader, training):
         # set model training/evaluation mode
@@ -135,14 +139,15 @@ class BasePredictor():
                 # accumulate gradient - zero_grad
                 if i % self.grad_accumulate_steps == 0:
                     # TODO: call zero gradient here
-                    pass
+                    self.optimizer.zero_grad()
 
                 # TODO: Call backward on `batch_loss` here.
+                batch_loss.backward()
 
                 # accumulate gradient - step
                 if (i + 1) % self.grad_accumulate_steps == 0:
                     # TODO: update gradient here
-                    pass
+                    self.optimizer.step()
             else:
                 with torch.no_grad():
                     output, batch_loss = \

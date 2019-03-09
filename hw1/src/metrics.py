@@ -44,6 +44,12 @@ class Recall(Metrics):
         # - increase self.n, which implies the total number of samples.
         # - increase self.n_corrects based on the prediction and labels
         #   of the batch.
+        for i, predict in enumerate(predicts):
+            self.n += 1
+            best_ids = torch.argsort(predict)[-self.at:]
+            correct_answer_id = torch.argmax(batch['labels'][i])
+            if correct_answer_id in best_ids:
+                self.n_corrects += 1
 
     def get_score(self):
         return self.n_corrects / self.n
