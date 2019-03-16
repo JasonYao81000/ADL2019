@@ -31,6 +31,7 @@ def main(args):
     model_path = os.path.join(
         args.model_dir,
         'model.pkl.{}'.format(args.epoch))
+    if args.epoch == -1: model_path = os.path.join(args.model_dir, 'model.pkl')
     logging.info('loading model from {}'.format(model_path))
     predictor.load(model_path)
 

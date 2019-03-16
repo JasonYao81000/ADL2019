@@ -107,6 +107,6 @@ venv.bak/
 hw1/data/*.json
 hw1/data/*.vec
 hw1/data/*.pkl
-hw1/models/*/*.pkl.*
+hw1/models/*/*.pkl*
 hw1/models/*/*.csv
 hw1/models/*/log.json

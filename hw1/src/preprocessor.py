@@ -4,7 +4,8 @@ from multiprocessing.dummy import Pool
 from dataset import DialogDataset
 from tqdm import tqdm
 # Import for the tokenize.
-import spacy
+import nltk
+import string
 
 class Preprocessor:
     """
@@ -15,26 +16,30 @@ class Preprocessor:
     def __init__(self, embedding):
         self.embedding = embedding
         self.logging = logging.getLogger(name=__name__)
-        # Load the language model, 'en' is for English.
-        self.nlp = spacy.load('en')
+        # Load the symbol set for English and the stop set.
+        self.stopset = set(nltk.corpus.stopwords.words('english'))
+        self.symbolset = set(string.punctuation)
 
     def tokenize(self, sentence):
         """ Tokenize a sentence.
         Args:
             sentence (str): One string.
         Return:
-            indices (list of str): List of tokens in a sentence.
+            tokens (list of str): List of tokens in a sentence.
         """
         # TODO
+
+        # Remove the symbols.
+        for symbol in self.symbolset:
+            sentence = sentence.replace(symbol, ' ')
+
         # Parse and tokenize a string.
-        doc = self.nlp(sentence)
+        tokens = nltk.tokenize.word_tokenize(sentence.lower())
         
-        # Use .text to recreate your original string.
-        indices = list()
-        for token in doc:
-            indices.append(token.text)
-            
-        return indices
+        # Remove the stop words.
+        tokens = [i for i in tokens if i not in self.stopset]
+
+        return tokens
 
     def sentence_to_indices(self, sentence):
         """ Convert sentence to its word indices.
@@ -45,9 +50,15 @@ class Preprocessor:
         """
         # TODO
         # Hint: You can use `self.embedding`
+
+        # Tokenize a sentence.
+        words = self.tokenize(sentence)
+
+        # Convert word to index.
         indices = list()
-        for word in sentence:
+        for word in words:
             indices.append(self.embedding.to_index(word))
+
         return indices
 
     def collect_words(self, data_path, n_workers=4):
@@ -64,8 +75,8 @@ class Preprocessor:
             )
         utterances = list(set(utterances))
         chunks = [
-            ' '.join(utterances[i:i + len(utterances) // (n_workers * 16)])
-            for i in range(0, len(utterances), len(utterances) // (n_workers * 16))
+            ' '.join(utterances[i:i + len(utterances) // n_workers])
+            for i in range(0, len(utterances), len(utterances) // n_workers)
         ]
         with Pool(n_workers) as pool:
             chunks = pool.map_async(self.tokenize, chunks)
@@ -120,7 +131,7 @@ class Preprocessor:
             list of processed dict.
         """
         processed = []
-        for sample in tqdm(dataset):
+        for sample in tqdm(dataset, ascii=True):
             processed.append(self.preprocess_sample(sample))
 
         return processed

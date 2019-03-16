@@ -33,7 +33,9 @@ def main(args):
         PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(
-        metrics=[Recall()],
+        batch_size=100, 
+        max_epochs=1024, 
+        metrics=[Recall(1), Recall(10)],
         **config['model_parameters']
     )
 
@@ -42,7 +44,7 @@ def main(args):
 
     model_checkpoint = ModelCheckpoint(
         os.path.join(args.model_dir, 'model.pkl'),
-        'loss', 1, 'all'
+        'Recall@{}'.format(10), 1, 'max'
     )
     metrics_logger = MetricsLogger(
         os.path.join(args.model_dir, 'log.json')

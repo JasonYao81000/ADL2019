@@ -62,10 +62,22 @@ class DialogDataset(Dataset):
         )
         data['labels'] = [1] * n_positive + [0] * n_negative
 
-        # use the last one utterance
-        data['context'] = data['context'][-1]
+        # Random shuffle options and labels
+        if self.shuffle:
+            zipped_data = list(zip(data['options'], data['option_ids'], data['labels']))
+            random.shuffle(zipped_data)
+            data['options'], data['option_ids'], data['labels'] = zip(*zipped_data)            
+        
+        # # use the last one utterance
+        # data['context'] = data['context'][-1]
+
+        # Simply concatenate them into single sequence.
+        utterances = []
+        for utterance in data['context']:
+            utterances += utterance
+        data['context'] = utterances
         if len(data['context']) > self.context_padded_len:
-            data['context'] = data['context'][:self.context_padded_len]
+            data['context'] = data['context'][-self.context_padded_len:]
 
         return data
 

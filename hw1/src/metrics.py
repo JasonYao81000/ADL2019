@@ -46,7 +46,7 @@ class Recall(Metrics):
         #   of the batch.
         for i, predict in enumerate(predicts):
             self.n += 1
-            best_ids = torch.argsort(predict)[-self.at:]
+            best_ids = torch.argsort(predict, descending=True)[:self.at]
             correct_answer_id = torch.argmax(batch['labels'][i])
             if correct_answer_id in best_ids:
                 self.n_corrects += 1

@@ -82,7 +82,7 @@ class BasePredictor():
 
         ys_ = []
         with torch.no_grad():
-            for batch in tqdm(dataloader):
+            for batch in tqdm(dataloader, ascii=True):
                 batch_y_ = predict_fn(batch)
                 ys_.append(batch_y_)
 
@@ -125,7 +125,8 @@ class BasePredictor():
         # run batches
         trange = tqdm(enumerate(dataloader),
                       total=iter_in_epoch,
-                      desc=description)
+                      desc=description,
+                      ascii=True)
         for i, batch in trange:
             if training and i >= iter_in_epoch:
                 break
