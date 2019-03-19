@@ -78,7 +78,7 @@ class BasePredictor():
         # You can set batch_size as `self.batch_size` here,
         # and `collate_fn=collate_fn`.
         # evaluate model
-        dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=self.batch_size, collate_fn=collate_fn)
+        dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=batch_size, collate_fn=collate_fn)
 
         ys_ = []
         with torch.no_grad():

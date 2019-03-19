@@ -46,11 +46,17 @@ class DialogDataset(Dataset):
             n_negative = min(len(negatives), self.n_negative)
 
         # TODO: sample positive indices
-        positive_indices = random.sample(range(len(positive_ids)), k=n_positive)
+        if self.n_positive == -1:
+            positive_indices = list(range(len(positive_ids)))
+        else:
+            positive_indices = random.sample(range(len(positive_ids)), k=n_positive)
 
         # TODO: sample negative indices
-        negative_indices = random.sample(range(len(negative_ids)), k=n_negative)
-
+        if self.n_negative == -1:
+            negative_indices = list(range(len(negative_ids)))
+        else:
+            negative_indices = random.sample(range(len(negative_ids)), k=n_negative)
+        
         # collect sampled options
         data['options'] = (
             [positives[i] for i in positive_indices]

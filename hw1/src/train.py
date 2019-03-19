@@ -33,7 +33,7 @@ def main(args):
         PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(
-        batch_size=100, 
+        batch_size=500, 
         max_epochs=1024, 
         metrics=[Recall(1), Recall(10)],
         **config['model_parameters']

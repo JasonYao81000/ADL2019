@@ -94,4 +94,4 @@ class ExampleNet(torch.nn.Module):
         
         # logits = torch.stack(logits, 1)
         logits = self.probability(torch.stack(logits, 1))
-        return (logits)
+        return logits
