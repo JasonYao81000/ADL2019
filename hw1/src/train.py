@@ -31,14 +31,9 @@ def main(args):
     if config['arch'] == 'ExampleNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(
-        batch_size=500, 
-        max_epochs=1024, 
-        metrics=[Recall(1), Recall(10)],
+        metrics=[Recall()],
         **config['model_parameters']
     )
 
@@ -47,7 +42,7 @@ def main(args):
 
     model_checkpoint = ModelCheckpoint(
         os.path.join(args.model_dir, 'model.pkl'),
-        'Recall@{}'.format(10), 1, 'max'
+        'loss', 1, 'all'
     )
     metrics_logger = MetricsLogger(
         os.path.join(args.model_dir, 'log.json')

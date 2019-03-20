@@ -1,7 +1,6 @@
 import re
 import torch
-import pickle
-from gensim.models import Word2Vec
+
 
 class Embedding:
     """
@@ -20,6 +19,7 @@ class Embedding:
 
     def __init__(self, embedding_path,
                  words=None, oov_as_unk=True, lower=True, rand_seed=524):
+#        print(words)
         self.word_dict = {}
         self.vectors = None
         self.lower = lower
@@ -41,6 +41,7 @@ class Embedding:
              index of the word. If the word is not in `words` and not in the
              embedding file, then index of `<unk>` will be returned.
         """
+#        print(self.word_dict)
         if self.lower:
             word = word.lower()
 
@@ -86,46 +87,53 @@ class Embedding:
             self.vectors = torch.cat([self.vectors, oov_vectors], 0)
 
     def _load_embedding(self, embedding_path, words):
+        print(words)
         if words is not None:
             words = set(words)
 
         vectors = []
+        with open(embedding_path, encoding="utf8") as fp:
 
-        # with open(embedding_path, 'rb') as f:
-        #     w2v = pickle.load(f)
+            row1 = fp.readline()
+            # if the first row is not header
+            if not re.match('^[0-9]+ [0-9]+$', row1):
+                # seek to 0
+                fp.seek(0)
+            # otherwise ignore the header
 
-        w2v = Word2Vec.load(embedding_path)
+            for i, line in enumerate(fp):
+                cols = line.rstrip().split(' ')
+                word = cols[0]
 
-        # Scan each word in the w2v model.
-        for word in w2v.wv.vocab:
-            # skip word not in words if words are provided
-            if words is not None and word not in words:
-                continue
-            elif word not in self.word_dict:
-                self.word_dict[word] = len(self.word_dict)
-                vectors.append(w2v.wv[word])
-
-        # with open(embedding_path, encoding='utf-8') as fp:
-
-        #     row1 = fp.readline()
-        #     # if the first row is not header
-        #     if not re.match('^[0-9]+ [0-9]+$', row1):
-        #         # seek to 0
-        #         fp.seek(0)
-        #     # otherwise ignore the header
-
-        #     for i, line in enumerate(fp):
-        #         cols = line.rstrip().split(' ')
-        #         word = cols[0]
-
-        #         # skip word not in words if words are provided
-        #         if words is not None and word not in words:
-        #             continue
-        #         elif word not in self.word_dict:
-        #             self.word_dict[word] = len(self.word_dict)
-        #             vectors.append([float(v) for v in cols[1:]])
-
+                # skip word not in words if words are provided
+                if words is not None and word not in words:
+                    continue
+                elif word not in self.word_dict:
+                    self.word_dict[word] = len(self.word_dict)
+                    vectors.append([float(v) for v in cols[1:]])
+#        from gensim.models import Word2Vec
+#        word2vec_dict = {}
+#        w2v_model = []
+#        embedding_dim = 50
+#        window_ = 1
+#        min_count_ = 0
+#        sample_ = 1e-1
+#        iter_ = 10
+#        w2v_model = Word2Vec(words, size=embedding_dim, window=window_, min_count=min_count_,sample=sample_,iter=iter_,  workers=12)
+##        text_weights = w2v_model.wv.syn0 
+##        vocab = dict([(k, v.index) for k,v in w2v_model.wv.vocab.items()])  
+#        vocab_list = [k for k,v in w2v_model.wv.vocab.items()]
+#        print(vocab_list)
+#        word2vec_dict = dict([(k, w2v_model.wv[k]) for k in vocab_list])
+#        for  i in range(len(word2vec_dict)):
+#            cols = word2vec_dict.get(vocab_list[i])
+#            self.word_dict[vocab_list[i]] = len(self.word_dict)
+#            vectors.append([float(v) for v in cols])
+#
+#        
+#        print(self.word_dict)
         vectors = torch.tensor(vectors)
+#        print(vectors)
         if self.vectors is not None:
             self.vectors = torch.cat([self.vectors, vectors], dim=0)
         else:

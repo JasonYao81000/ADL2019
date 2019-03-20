@@ -25,16 +25,12 @@ def main(args):
     if config['arch'] == 'ExampleNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(metrics=[],
                                **config['model_parameters'])
     model_path = os.path.join(
         args.model_dir,
         'model.pkl.{}'.format(args.epoch))
-    if args.epoch == -1: model_path = os.path.join(args.model_dir, 'model.pkl')
     logging.info('loading model from {}'.format(model_path))
     predictor.load(model_path)
 
@@ -44,6 +40,8 @@ def main(args):
         test = pickle.load(f)
         test.shuffle = False
     logging.info('predicting...')
+    print(test)
+    print(test.collate_fn)
     predicts = predictor.predict_dataset(test, test.collate_fn)
 
     output_path = os.path.join(args.model_dir,

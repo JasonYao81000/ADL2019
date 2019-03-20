@@ -21,13 +21,13 @@ def main(args):
     # collect words appear in the data
     words = set()
     logging.info('collecting words from {}'.format(config['valid_json_path']))
-    words |= preprocessor.collect_words(config['valid_json_path'],
+    words |= preprocessor.collect_words(config['test_json_path'],
                                         n_workers=args.n_workers)
     logging.info('collecting words from {}'.format(config['train_json_path']))
     words |= preprocessor.collect_words(config['train_json_path'],
                                         n_workers=args.n_workers)
     logging.info('collecting words from {}'.format(config['test_json_path']))
-    words |= preprocessor.collect_words(config['test_json_path'],
+    words |= preprocessor.collect_words(config['valid_json_path'],
                                         n_workers=args.n_workers)
 
     # load embedding only for words in the data
@@ -56,9 +56,8 @@ def main(args):
 
     # train
     logging.info('Processing train from {}'.format(config['train_json_path']))
-    train = preprocessor.get_dataset(
-        config['train_json_path'], args.n_workers,
-        {'n_positive': 1, 'n_negative': 9, 'shuffle': True}
+    train = preprocessor.get_dataset(config['train_json_path'], args.n_workers,
+        {'n_positive': -1, 'n_negative': -1, 'shuffle': True}                                 
     )
     train_pkl_path = os.path.join(args.dest_dir, 'train.pkl')
     logging.info('Saving train to {}'.format(train_pkl_path))

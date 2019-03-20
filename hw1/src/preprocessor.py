@@ -3,10 +3,7 @@ import logging
 from multiprocessing.dummy import Pool
 from dataset import DialogDataset
 from tqdm import tqdm
-# Import for the tokenize.
 import re
-import nltk
-import string
 
 class Preprocessor:
     """
@@ -17,34 +14,22 @@ class Preprocessor:
     def __init__(self, embedding):
         self.embedding = embedding
         self.logging = logging.getLogger(name=__name__)
-        # # Load the symbol set for English and the stop set.
-        self.stopset = set(nltk.corpus.stopwords.words('english'))
-        self.symbolset = set(string.punctuation)
-        self.pattern = re.compile("(\W|\d)")
 
     def tokenize(self, sentence):
         """ Tokenize a sentence.
         Args:
             sentence (str): One string.
         Return:
-            tokens (list of str): List of tokens in a sentence.
+            indices (list of str): List of tokens in a sentence.
         """
+        # print(sentence)
         # TODO
-
-        # Split alphabet and digits.
-        sentence = ' '.join(self.pattern.split(str.lower(sentence)))
-
-        # Remove the symbols.
-        for symbol in self.symbolset:
-            sentence = sentence.replace(symbol, ' ')
-
-        # Parse and tokenize a string.
-        tokens = nltk.tokenize.word_tokenize(sentence)
-        
-        # # Remove the stop words.
-        # tokens = [i for i in tokens if i not in self.stopset]
-
-        return tokens
+        filtrate = re.compile(u'[^\u0041-\u005A | \u0061-\u007A]')#非中文
+        filtered_str = filtrate.sub(r' ', sentence)#replace
+        querywords = filtered_str.split()
+#        print(querywords)
+       
+        return querywords
 
     def sentence_to_indices(self, sentence):
         """ Convert sentence to its word indices.
@@ -54,19 +39,24 @@ class Preprocessor:
             indices (list of int): List of word indices.
         """
         # TODO
-        # Hint: You can use `self.embedding`
-
-        # Tokenize a sentence.
-        words = self.tokenize(sentence)
-
-        # Convert word to index.
+        # Hint: You can use `self.embedding
+#        print(sentence)
         indices = list()
-        for word in words:
-            indices.append(self.embedding.to_index(word))
-
+        new_sentence = list(self.tokenize(sentence))
+        for i in range(len(new_sentence)):
+            indices.append(self.embedding.to_index(new_sentence[i]))
+#        print(indices)
         return indices
-
-    def collect_words(self, data_path, n_workers=4):
+    
+    def parallel(self, data, threads):
+        pool = Pool(threads)
+        results = pool.map(self.tokenize, data)
+        pool.close()
+        pool.join()
+        
+        return results
+    
+    def collect_words(self, data_path, n_workers=5):
         with open(data_path) as f:
             data = json.load(f)
 
@@ -83,13 +73,34 @@ class Preprocessor:
             ' '.join(utterances[i:i + len(utterances) // n_workers])
             for i in range(0, len(utterances), len(utterances) // n_workers)
         ]
-        with Pool(n_workers) as pool:
-            chunks = pool.map_async(self.tokenize, chunks)
-            words = set(sum(chunks.get(), []))
+        # print(chunks)
+#        words = self.parallel(chunks, n_workers)
+#        with Pool(n_workers) as pool:
+#            chunks = pool.map_async(self.tokenize, chunks)
+#            words = set(sum(chunks.get(), []))
+#        words = []
+#        filtrate = re.compile(u'[^\u0041-\u005A | \u0061-\u007A]')s
+#        for i in range(len(chunks)):
+#            filtered_str = filtrate.sub(r' ', chunks[i])#replace
+#            words.append(filtered_str)
+#        for i in range(len(words)):
+#            querywords = words[i].split()
+#            words[i] = ' '.join(querywords)
+        
+        wordlist = []
+        words = list()
+        filtrate = re.compile(u'[^\u0041-\u005A | \u0061-\u007A]')#非中文
+        for i in range(len(chunks)):
+            filtered_str = filtrate.sub(r' ', chunks[i])#replace
+            wordlist.append(filtered_str)
+        for i in range(len(wordlist)):
+            querywords = wordlist[i].split()
+            words = words + querywords
+#        print(words)
 
-        return words
+        return set(words)
 
-    def get_dataset(self, data_path, n_workers=4, dataset_args={}):
+    def get_dataset(self, data_path, n_workers=5, dataset_args={}):
         """ Load data and return Dataset objects for training and validating.
 
         Args:
@@ -101,7 +112,7 @@ class Preprocessor:
             dataset = json.load(f)
 
         self.logging.info('preprocessing data...')
-
+#        results = [None]
         results = [None] * n_workers
         with Pool(processes=n_workers) as pool:
             for i in range(n_workers):
@@ -119,7 +130,8 @@ class Preprocessor:
 
             pool.close()
             pool.join()
-
+#        results = self.preprocess_samples(dataset)
+#        print(results)
         processed = []
         for result in results:
             processed += result.get()
@@ -136,7 +148,7 @@ class Preprocessor:
             list of processed dict.
         """
         processed = []
-        for sample in tqdm(dataset, ascii=True):
+        for sample in tqdm(dataset):
             processed.append(self.preprocess_sample(sample))
 
         return processed

@@ -38,18 +38,22 @@ class Recall(Metrics):
             batch (dict): batch.
         """
         predicts = predicts.cpu()
+        for i, predict in enumerate(predicts):
+#            print(predict)
+            option = torch.argsort(predict, descending=True)[:self.at]
+            correct = torch.nonzero(batch['labels'][i])[0]
+            if correct in option:
+                self.n_corrects += 1
+        self.n += len(predicts)
         # TODO
         # This method will be called for each batch.
         # You need to
         # - increase self.n, which implies the total number of samples.
         # - increase self.n_corrects based on the prediction and labels
         #   of the batch.
-        for i, predict in enumerate(predicts):
-            self.n += 1
-            best_ids = torch.argsort(predict, descending=True)[:self.at]
-            correct_answer_id = torch.argmax(batch['labels'][i])
-            if correct_answer_id in best_ids:
-                self.n_corrects += 1
+#        self.n += 10
+##        print(predicts)
+#        print(batch)
 
     def get_score(self):
         return self.n_corrects / self.n

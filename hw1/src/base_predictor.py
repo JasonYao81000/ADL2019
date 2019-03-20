@@ -1,4 +1,5 @@
 import torch
+from torch.utils.data import DataLoader
 import torch.utils.data.dataloader
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm
@@ -6,7 +7,7 @@ from tqdm import tqdm
 
 class BasePredictor():
     def __init__(self,
-                 batch_size=10,
+                 batch_size=20,
                  max_epochs=10,
                  valid=None,
                  device=None,
@@ -39,7 +40,14 @@ class BasePredictor():
             # TODO: create dataloader for `train`.
             # You can set batch_size as `self.batch_size` here,
             # and `collate_fn=collate_fn`.
-            dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=self.batch_size, collate_fn=collate_fn)
+#            self.batch_size = batch_size
+            
+            dataloader = DataLoader(
+                dataset = data,      # torch TensorDataset format
+                batch_size = self.batch_size,      # mini batch size
+                shuffle = True,               # 要不要打乱数据 (打乱比较好)
+                collate_fn = collate_fn,
+            )
 
             # train epoch
             log_train = self._run_epoch(dataloader, True)
@@ -51,7 +59,13 @@ class BasePredictor():
                 # You can set batch_size as `self.batch_size` here,
                 # and `collate_fn=collate_fn`.
                 # evaluate model
-                dataloader = torch.utils.data.DataLoader(dataset=self.valid, batch_size=self.batch_size, collate_fn=collate_fn)
+                dataloader = DataLoader(
+                    dataset = self.valid,      # torch TensorDataset format
+                    batch_size = self.batch_size,      # mini batch size
+                    shuffle = True,               # 要不要打乱数据 (打乱比较好)
+                    collate_fn = collate_fn,
+                )
+                
                 log_valid = self._run_epoch(dataloader, False)
             else:
                 log_valid = None
@@ -78,7 +92,12 @@ class BasePredictor():
         # You can set batch_size as `self.batch_size` here,
         # and `collate_fn=collate_fn`.
         # evaluate model
-        dataloader = torch.utils.data.DataLoader(dataset=data, batch_size=batch_size, collate_fn=collate_fn)
+        dataloader = DataLoader(
+            dataset = data,      # torch TensorDataset format
+            batch_size = self.batch_size,      # mini batch size
+            shuffle = False,               # 要不要打乱数据 (打乱比较好)
+            collate_fn = collate_fn,
+        )
 
         ys_ = []
         with torch.no_grad():
@@ -99,10 +118,12 @@ class BasePredictor():
 
     def load(self, path):
         # TODO: Load saved model from path here.
+#        print(path)
         torch_dict = torch.load(path)
         self.epoch = torch_dict['epoch']
         self.model.load_state_dict(torch_dict['model'])
         self.optimizer.load_state_dict(torch_dict['optimizer'])
+#        self.model.load_state_dict(torch.load(path))
 
     def _run_epoch(self, dataloader, training):
         # set model training/evaluation mode
