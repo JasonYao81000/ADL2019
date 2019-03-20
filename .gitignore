@@ -108,7 +108,9 @@ hw1/data/*.json
 hw1/data/*.vec
 hw1/data/*.pkl
 hw1/data/corpus.txt
-hw1/data/w2v*
+hw1/data/w2v
+hw1/data/w2v.pkl
+hw1/data/w2v.*.npy
 hw1/models/*/*.pkl*
 hw1/models/*/*.csv
 hw1/models/*/log.json
