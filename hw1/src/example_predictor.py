@@ -1,6 +1,7 @@
 import torch
 from base_predictor import BasePredictor
-from modules import ExampleNet
+# from modules import ExampleNet
+from modules import GruCosNet
 
 
 class ExamplePredictor(BasePredictor):
@@ -16,7 +17,7 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='BCELoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        self.model = ExampleNet(embedding.size(1),
+        self.model = GruCosNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))

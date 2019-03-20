@@ -25,6 +25,9 @@ def main(args):
     if config['arch'] == 'ExampleNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
+    elif config['arch'] == 'GruCosNet':
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(metrics=[],
                                **config['model_parameters'])
