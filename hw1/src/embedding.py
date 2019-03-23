@@ -1,7 +1,7 @@
 import re
 import torch
-import pickle
-from gensim.models import Word2Vec
+# import pickle
+# from gensim.models import Word2Vec
 
 class Embedding:
     """
@@ -94,36 +94,36 @@ class Embedding:
         # with open(embedding_path, 'rb') as f:
         #     w2v = pickle.load(f)
 
-        w2v = Word2Vec.load(embedding_path)
+        # w2v = Word2Vec.load(embedding_path)
 
-        # Scan each word in the w2v model.
-        for word in w2v.wv.vocab:
-            # skip word not in words if words are provided
-            if words is not None and word not in words:
-                continue
-            elif word not in self.word_dict:
-                self.word_dict[word] = len(self.word_dict)
-                vectors.append(w2v.wv[word])
+        # # Scan each word in the w2v model.
+        # for word in w2v.wv.vocab:
+        #     # skip word not in words if words are provided
+        #     if words is not None and word not in words:
+        #         continue
+        #     elif word not in self.word_dict:
+        #         self.word_dict[word] = len(self.word_dict)
+        #         vectors.append(w2v.wv[word])
 
-        # with open(embedding_path, encoding='utf-8') as fp:
+        with open(embedding_path, encoding='utf-8') as fp:
 
-        #     row1 = fp.readline()
-        #     # if the first row is not header
-        #     if not re.match('^[0-9]+ [0-9]+$', row1):
-        #         # seek to 0
-        #         fp.seek(0)
-        #     # otherwise ignore the header
+            row1 = fp.readline()
+            # if the first row is not header
+            if not re.match('^[0-9]+ [0-9]+$', row1):
+                # seek to 0
+                fp.seek(0)
+            # otherwise ignore the header
 
-        #     for i, line in enumerate(fp):
-        #         cols = line.rstrip().split(' ')
-        #         word = cols[0]
+            for i, line in enumerate(fp):
+                cols = line.rstrip().split(' ')
+                word = cols[0]
 
-        #         # skip word not in words if words are provided
-        #         if words is not None and word not in words:
-        #             continue
-        #         elif word not in self.word_dict:
-        #             self.word_dict[word] = len(self.word_dict)
-        #             vectors.append([float(v) for v in cols[1:]])
+                # skip word not in words if words are provided
+                if words is not None and word not in words:
+                    continue
+                elif word not in self.word_dict:
+                    self.word_dict[word] = len(self.word_dict)
+                    vectors.append([float(v) for v in cols[1:]])
 
         vectors = torch.tensor(vectors)
         if self.vectors is not None:

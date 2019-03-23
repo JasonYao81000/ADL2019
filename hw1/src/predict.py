@@ -28,8 +28,12 @@ def main(args):
     elif config['arch'] == 'GruCosNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
+    elif config['arch'] == 'GruAttCosNet':
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(metrics=[],
+                               device=args.device,
                                **config['model_parameters'])
     model_path = os.path.join(
         args.model_dir,

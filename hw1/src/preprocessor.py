@@ -4,7 +4,6 @@ from multiprocessing.dummy import Pool
 from dataset import DialogDataset
 from tqdm import tqdm
 # Import for the tokenize.
-import re
 import nltk
 import string
 
@@ -17,10 +16,9 @@ class Preprocessor:
     def __init__(self, embedding):
         self.embedding = embedding
         self.logging = logging.getLogger(name=__name__)
-        # # Load the symbol set for English and the stop set.
-        self.stopset = set(nltk.corpus.stopwords.words('english'))
-        self.symbolset = set(string.punctuation)
-        self.pattern = re.compile("(\W|\d)")
+        # Load the symbols and the stop words for English.
+        self.symbols = set(string.punctuation)
+        self.stopwords = set(nltk.corpus.stopwords.words('english'))
 
     def tokenize(self, sentence):
         """ Tokenize a sentence.
@@ -30,19 +28,15 @@ class Preprocessor:
             tokens (list of str): List of tokens in a sentence.
         """
         # TODO
-
-        # Split alphabet and digits.
-        sentence = ' '.join(self.pattern.split(str.lower(sentence)))
-
         # Remove the symbols.
-        for symbol in self.symbolset:
+        for symbol in self.symbols:
             sentence = sentence.replace(symbol, ' ')
 
         # Parse and tokenize a string.
-        tokens = nltk.tokenize.word_tokenize(sentence)
+        tokens = nltk.tokenize.word_tokenize(sentence.lower())
         
         # # Remove the stop words.
-        # tokens = [i for i in tokens if i not in self.stopset]
+        # tokens = [i for i in tokens if i not in self.stopwords]
 
         return tokens
 
