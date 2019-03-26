@@ -4,6 +4,8 @@ from multiprocessing.dummy import Pool
 from dataset import DialogDataset
 from tqdm import tqdm
 import re
+import nltk
+import string
 
 class Preprocessor:
     """
@@ -14,6 +16,9 @@ class Preprocessor:
     def __init__(self, embedding):
         self.embedding = embedding
         self.logging = logging.getLogger(name=__name__)
+        self.stopset = set(nltk.corpus.stopwords.words('english'))
+        self.symbolset = set(string.punctuation)
+        self.pattern = re.compile("(\W|\d)")
 
     def tokenize(self, sentence):
         """ Tokenize a sentence.
@@ -24,12 +29,19 @@ class Preprocessor:
         """
         # print(sentence)
         # TODO
-        filtrate = re.compile(u'[^\u0041-\u005A | \u0061-\u007A]')#非中文
-        filtered_str = filtrate.sub(r' ', sentence)#replace
-        querywords = filtered_str.split()
-#        print(querywords)
-       
-        return querywords
+        sentence = ' '.join(self.pattern.split(str.lower(sentence)))
+
+        # Remove the symbols.
+        for symbol in self.symbolset:
+            sentence = sentence.replace(symbol, '')
+
+        # Parse and tokenize a string.
+        tokens = nltk.tokenize.word_tokenize(sentence)
+        
+        # # Remove the stop words.
+        # tokens = [i for i in tokens if i not in self.stopset]
+
+        return tokens
 
     def sentence_to_indices(self, sentence):
         """ Convert sentence to its word indices.
@@ -41,11 +53,13 @@ class Preprocessor:
         # TODO
         # Hint: You can use `self.embedding
 #        print(sentence)
+        words = self.tokenize(sentence)
+
+        # Convert word to index.
         indices = list()
-        new_sentence = list(self.tokenize(sentence))
-        for i in range(len(new_sentence)):
-            indices.append(self.embedding.to_index(new_sentence[i]))
-#        print(indices)
+        for word in words:
+            indices.append(self.embedding.to_index(word))
+
         return indices
     
     def parallel(self, data, threads):
@@ -87,18 +101,15 @@ class Preprocessor:
 #            querywords = words[i].split()
 #            words[i] = ' '.join(querywords)
         
-        wordlist = []
-        words = list()
-        filtrate = re.compile(u'[^\u0041-\u005A | \u0061-\u007A]')#非中文
-        for i in range(len(chunks)):
-            filtered_str = filtrate.sub(r' ', chunks[i])#replace
-            wordlist.append(filtered_str)
-        for i in range(len(wordlist)):
-            querywords = wordlist[i].split()
-            words = words + querywords
+        with Pool(n_workers) as pool:
+            chunks = pool.map_async(self.tokenize, chunks)
+            words = set(sum(chunks.get(), []))
+
+        return words
+
 #        print(words)
 
-        return set(words)
+#        return set(words)
 
     def get_dataset(self, data_path, n_workers=5, dataset_args={}):
         """ Load data and return Dataset objects for training and validating.
@@ -112,7 +123,7 @@ class Preprocessor:
             dataset = json.load(f)
 
         self.logging.info('preprocessing data...')
-#        results = [None]
+
         results = [None] * n_workers
         with Pool(processes=n_workers) as pool:
             for i in range(n_workers):
@@ -130,14 +141,14 @@ class Preprocessor:
 
             pool.close()
             pool.join()
-#        results = self.preprocess_samples(dataset)
-#        print(results)
+
         processed = []
         for result in results:
             processed += result.get()
 
         padding = self.embedding.to_index('</s>')
         return DialogDataset(processed, padding=padding, **dataset_args)
+
 
     def preprocess_samples(self, dataset):
         """ Worker function.

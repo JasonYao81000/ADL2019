@@ -21,7 +21,7 @@ class Recall(Metrics):
          ats (int): @ to eval.
          rank_na (bool): whether to consider no answer.
     """
-    def __init__(self, at=10):
+    def __init__(self, at=1):
         self.at = at
         self.n = 0
         self.n_correct = 0
@@ -40,11 +40,13 @@ class Recall(Metrics):
         predicts = predicts.cpu()
         for i, predict in enumerate(predicts):
 #            print(predict)
+            self.n += 1
             option = torch.argsort(predict, descending=True)[:self.at]
+#            print(batch['labels'][i])
             correct = torch.nonzero(batch['labels'][i])[0]
             if correct in option:
                 self.n_corrects += 1
-        self.n += len(predicts)
+
         # TODO
         # This method will be called for each batch.
         # You need to

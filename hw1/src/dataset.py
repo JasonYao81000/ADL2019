@@ -39,26 +39,38 @@ class DialogDataset(Dataset):
         positive_ids = data['option_ids'][:data['n_corrects']]
         negative_ids = data['option_ids'][data['n_corrects']:]
 
-        if self.n_positive == -1:
-            n_positive = len(positives)
-        if self.n_negative == -1:
-            n_negative = len(negatives)
-        else:
-            n_positive = min(len(positives), self.n_positive)
-            n_negative = min(len(negatives), self.n_negative)
+#        if self.n_positive == -1:
+#            n_positive = len(positives)
+#        if self.n_negative == -1:
+#            n_negative = len(negatives)
+#        else:
+#            n_positive = min(len(positives), self.n_positive)
+#            n_negative = min(len(negatives), self.n_negative)
 
 #        print(data)
 #        print(positive_ids)
-#        print(n_positive)
-#        print(n_negative)
+        
 #        print(negative_ids)
 #        print(negatives)
         
         # TODO: sample positive indices
-        positive_indices = range(n_positive)
+        if self.n_positive == -1:
+            n_positive = len(positives)
+            positive_indices = list(range(len(positive_ids)))
+        else:
+            n_positive = min(len(positives), self.n_positive)
+            positive_indices = random.sample(range(len(positive_ids)), k=n_positive)
 
         # TODO: sample negative indices
-        negative_indices = range(n_negative)
+        if self.n_negative == -1:
+            n_negative = len(negatives)
+            negative_indices = list(range(len(negative_ids)))
+        else:
+            n_negative = min(len(negatives), self.n_negative)
+            negative_indices = random.sample(range(len(negative_ids)), k=n_negative)
+            
+#        print(n_positive)
+#        print(n_negative)
         
 #        print(positive_indices)
 #        print(negative_indices)
@@ -73,7 +85,7 @@ class DialogDataset(Dataset):
             + [negative_ids[i] for i in negative_indices]
         )
         data['labels'] = [1] * n_positive + [0] * n_negative
-#        print(data['labels'])
+#        print(len(data['labels']))
         # use the last one utterance
         data['context'] = data['context'][-1]
         if len(data['context']) > self.context_padded_len:
@@ -95,7 +107,7 @@ class DialogDataset(Dataset):
         padded_len = min(self.context_padded_len, max(batch['context_lens']))
         batch['context'] = torch.tensor(
             [pad_to_len(data['context'], padded_len, self.padding)
-             for data in datas], dtype=torch.long
+             for data in datas]
         )
 
         # build tensor of options
@@ -110,7 +122,7 @@ class DialogDataset(Dataset):
         batch['options'] = torch.tensor(
             [[pad_to_len(opt, padded_len, self.padding)
               for opt in data['options']]
-             for data in datas], dtype=torch.long
+             for data in datas]
         )
 
         return batch
@@ -128,8 +140,9 @@ def pad_to_len(arr, padded_len, padding=0):
         padding (int): Integer used to pad.
     """
 #    print(arr)
-    if len(arr) >= padded_len:
-        return arr[:padded_len]
+    if len(arr) < padded_len:
+        result = arr + [padding] * (padded_len - len(arr))
     else:
-        return np.pad(arr, (0,padded_len-len(arr)), 'constant', constant_values=padding)
+        result = arr[:padded_len]
+    return result
     
