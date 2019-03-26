@@ -1,14 +1,14 @@
 import torch
 import torch.nn.functional as F
 
-class GruAttCosNet(torch.nn.Module):
+class GruAttCosMaxNet(torch.nn.Module):
     """
     Args:
     """
 
     def __init__(self, dim_embeddings,
                  similarity='CosineSimilarity'):
-        super(GruAttCosNet, self).__init__()
+        super(GruAttCosMaxNet, self).__init__()
         self.hidden_size = 256
         self.num_layers = 1
         self.rnn = torch.nn.GRU(dim_embeddings, self.hidden_size, self.num_layers, batch_first=True, bidirectional=True)
@@ -59,20 +59,6 @@ class GruAttCosNet(torch.nn.Module):
             # attention_option: tensor of shape (batch, option_length, context_length) x (batch, context_length, hidden_size) -> (batch, option_length, hidden_size)
             attention_option = torch.bmm(F.softmax(attentions, dim=2), context_key)
 
-            # attention_context = torch.sum(
-            #     torch.mul(      # (batch, option_length, context_length, hidden_size * 2)
-            #         torch.unsqueeze(F.softmax(attentions, dim=1), 3).repeat((1, 1, 1, option_outs.size(2))),
-            #         repeat_option_outs
-            #     ), dim=1
-            # )
-            
-            # attention_option = torch.sum(
-            #     torch.mul(      # (batch, option_length, context_length, hidden_size * 2)
-            #         torch.unsqueeze(F.softmax(attentions, dim=2), 3).repeat((1, 1, 1, option_outs.size(2))),
-            #         repeat_context_outs 
-            #     ), dim=2
-            # )
-
             # Set initial hidden and cell states 
             h_1 = torch.zeros(self.num_layers * 2, context.size(0), self.hidden_size).to(context.get_device())
 
@@ -81,10 +67,9 @@ class GruAttCosNet(torch.nn.Module):
             # attention_context_h_n: tensor of shape (num_layers * 2, batch, hidden_size)
             attention_context_outs, attention_context_h_n = self.attention_rnn(attention_context, h_1)
 
-            # attention_context_h: tensor of shape (num_layers * 2, batch, hidden_size) -> (batch, num_layers * 2, hidden_size)
-            attention_context_h = attention_context_h_n.transpose(1, 0)
-            # Flatten the hidden states of the last time step -> (batch, num_layers * 2 * hidden_size)
-            attention_context_h = attention_context_h.contiguous().view(context.size(0), -1)
+            # Max pooling over RNN outputs.
+            # attention_context_outs_max: tensor of shape (batch, hidden_size * 2)
+            attention_context_outs_max = attention_context_outs.max(dim=1)[0]
 
             # Set initial hidden and cell states 
             h_1 = torch.zeros(self.num_layers * 2, option.size(0), self.hidden_size).to(option.get_device())
@@ -94,13 +79,12 @@ class GruAttCosNet(torch.nn.Module):
             # attention_option_h_n: tensor of shape (num_layers * 2, batch, hidden_size)
             attention_option_outs, attention_option_h_n = self.attention_rnn(attention_option, h_1)
 
-            # attention_option_h: tensor of shape (num_layers * 2, batch, hidden_size) -> (batch, num_layers * 2, hidden_size)
-            attention_option_h = attention_option_h_n.transpose(1, 0)
-            # Flatten the hidden states of the last time step -> (batch, num_layers * 2 * hidden_size)
-            attention_option_h = attention_option_h.contiguous().view(option.size(0), -1)
+            # Max pooling over RNN outputs.
+            # attention_option_outs_max: tensor of shape (batch, hidden_size * 2)
+            attention_option_outs_max = attention_option_outs.max(dim=1)[0]
 
             # Cosine similarity between context and each option.
-            logit = torch.nn.CosineSimilarity(dim=1)(attention_context_h, attention_option_h)
+            logit = torch.nn.CosineSimilarity(dim=1)(attention_context_outs_max, attention_option_outs_max)
             logits.append(logit)
 
         logits = F.softmax(torch.stack(logits, 1), dim=1)

@@ -2,7 +2,15 @@ import torch
 from base_predictor import BasePredictor
 # from modules import ExampleNet
 # from modules import GruCosNet
-from modules import GruAttCosNet
+# from modules import GruCosMaxNet
+# from modules import GruCosMeanNet
+# from modules import GruAttCosNet
+# from modules import GruAttCosMeanNet
+from modules import GruAttCosMaxNet
+# from modules import GruCosAttCosMeanNet
+# from modules import CosAttentionNet
+# from modules import CosAttentionMaxNet
+# from modules import CosAttentionsMaxNet
 
 
 class ExamplePredictor(BasePredictor):
@@ -18,7 +26,7 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='BCELoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        self.model = GruAttCosNet(embedding.size(1),
+        self.model = GruAttCosMaxNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))

@@ -155,7 +155,7 @@ class BasePredictor():
                         self._run_iter(batch, training)
 
             # accumulate loss and metric scores
-            loss += batch_loss.item()
+            loss += batch_loss.item() * self.grad_accumulate_steps
             for metric in self.metrics:
                 metric.update(output, batch)
             trange.set_postfix(
