@@ -9,3 +9,4 @@ from .gru_cosatt_cos_mean_net import GruCosAttCosMeanNet
 from .cos_attention_net import CosAttentionNet
 from .cos_attention_max_net import CosAttentionMaxNet
 from .cos_attentions_max_net import CosAttentionsMaxNet
+from .bahdanau_attentions_max_net import BahdanauAttentionsMaxNet

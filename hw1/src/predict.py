@@ -38,6 +38,9 @@ def main(args):
     elif config['arch'] == 'CosAttentionsMaxNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
+    elif config['arch'] == 'BahdanauAttentionsMaxNet':
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(metrics=[],
                                device=args.device,
