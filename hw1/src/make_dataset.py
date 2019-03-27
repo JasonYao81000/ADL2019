@@ -58,7 +58,7 @@ def main(args):
     logging.info('Processing train from {}'.format(config['train_json_path']))
     train = preprocessor.get_dataset(
         config['train_json_path'], args.n_workers,
-        {'n_positive': 1, 'n_negative': 9, 'shuffle': True}
+        {'n_positive': 1, 'n_negative': 4, 'shuffle': True}
     )
     train_pkl_path = os.path.join(args.dest_dir, 'train.pkl')
     logging.info('Saving train to {}'.format(train_pkl_path))

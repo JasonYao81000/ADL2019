@@ -25,17 +25,7 @@ def main(args):
     if config['arch'] == 'ExampleNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet' or config['arch'] == 'GruCosMaxNet' or config['arch'] == 'GruCosMeanNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruAttCosNet' or config['arch'] == 'GruAttCosMaxNet' or config['arch'] == 'GruAttCosMeanNet' \
-        or config['arch'] == 'GruCosAttCosNet' or config['arch'] == 'GruCosAttCosMaxNet' or config['arch'] == 'GruCosAttCosMeanNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'CosAttentionNet' or config['arch'] == 'CosAttentionMaxNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'CosAttentionsMaxNet':
+    elif config['arch'] == 'GruCosNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
     elif config['arch'] == 'BahdanauAttentionsMaxNet':

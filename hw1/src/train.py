@@ -31,7 +31,8 @@ def main(args):
     if config['arch'] == 'ExampleNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet' or config['arch'] == 'GruCosMaxNet' or config['arch'] == 'GruCosMeanNet':
+    elif config['arch'] == 'GruCosNet':
+        train.n_negative = 9
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
@@ -39,53 +40,6 @@ def main(args):
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'GruAttCosNet' or config['arch'] == 'GruAttCosMaxNet' or config['arch'] == 'GruAttCosMeanNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=25, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=10,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'GruCosAttCosNet' or config['arch'] == 'GruCosAttCosMaxNet' or config['arch'] == 'GruCosAttCosMeanNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=35, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=7,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'CosAttentionNet' or config['arch'] == 'CosAttentionMaxNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=35, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=7,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'CosAttentionsMaxNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=25, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=10,
             device=args.device,
             **config['model_parameters']
         )
