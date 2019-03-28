@@ -34,6 +34,9 @@ def main(args):
     elif config['arch'] == 'BiGruBattMaxNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
+    elif config['arch'] == 'BiGruBatt4MaxNet':
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
 
     predictor = PredictorClass(batch_size=100,
                                metrics=[],

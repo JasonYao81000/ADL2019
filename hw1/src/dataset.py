@@ -78,8 +78,10 @@ class DialogDataset(Dataset):
         # data['context'] = data['context'][-1]
 
         # Simply concatenate them into single sequence.
+        # And separate them with special (speaker) tokens.
         utterances = []
-        for utterance in data['context']:
+        for speaker, utterance in zip(data['speaker'], data['context']):
+            utterances += [speaker]
             utterances += utterance
         data['context'] = utterances
         if len(data['context']) > self.context_padded_len:

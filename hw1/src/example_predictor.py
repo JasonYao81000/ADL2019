@@ -3,7 +3,8 @@ from base_predictor import BasePredictor
 # from modules import ExampleNet
 # from modules import GruCosNet
 # from modules import BahdanauAttentionsMaxNet
-from modules import BiGruBattMaxNet
+# from modules import BiGruBattMaxNet
+from modules import BiGruBatt4MaxNet
 
 class ExamplePredictor(BasePredictor):
     """
@@ -18,7 +19,7 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='BCELoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        self.model = BiGruBattMaxNet(embedding.size(1),
+        self.model = BiGruBatt4MaxNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))

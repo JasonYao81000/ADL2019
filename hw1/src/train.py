@@ -67,6 +67,18 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
+    elif config['arch'] == 'BiGruBatt4MaxNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            batch_size=80, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=2,
+            device=args.device,
+            **config['model_parameters']
+        )
 
     if args.load is not None:
         predictor.load(args.load)

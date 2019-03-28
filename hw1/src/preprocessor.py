@@ -152,6 +152,9 @@ class Preprocessor:
             processed['context'].append(
                 self.sentence_to_indices(message['utterance'].lower())
             )
+            processed['speaker'].append(
+                self.embedding.to_index(message['speaker'].lower())
+            )
 
         # process options
         processed['options'] = []
