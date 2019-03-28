@@ -34,7 +34,7 @@ def main(args):
     logging.info(
         'loading embedding from {}'.format(config['embedding_vec_path'])
     )
-    embedding = Embedding(config['embedding_vec_path'], words)
+    embedding = Embedding(config['embedding_vec_path'], words, oov_as_unk=False)
     embedding_pkl_path = os.path.join(args.dest_dir, 'embedding.pkl')
     logging.info('Saving embedding to {}'.format(embedding_pkl_path))
     with open(embedding_pkl_path, 'wb') as f:
