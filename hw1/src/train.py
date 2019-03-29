@@ -48,7 +48,7 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
-            batch_size=90, 
+            batch_size=80, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=2,
