@@ -34,7 +34,7 @@ def main(args):
     elif config['arch'] == 'BiGruBattMaxNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBatt4MaxNet':
+    elif config['arch'] == 'BiGruBatt4MaxNet' or config['arch'] == 'BiGruBatt4MaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
 

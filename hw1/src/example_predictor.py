@@ -4,7 +4,10 @@ from base_predictor import BasePredictor
 # from modules import GruCosNet
 # from modules import BahdanauAttentionsMaxNet
 # from modules import BiGruBattMaxNet
-from modules import BiGruBatt4MaxNet
+# from modules import BiGruBatt4MaxNet
+from modules import BiGruBatt4MaxFocalNet
+
+from FocalLoss import FocalLoss
 
 class ExamplePredictor(BasePredictor):
     """
@@ -16,10 +19,10 @@ class ExamplePredictor(BasePredictor):
     """
 
     def __init__(self, embedding,
-                 dropout_rate=0.2, loss='BCELoss', margin=0, threshold=None,
+                 dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        self.model = BiGruBatt4MaxNet(embedding.size(1),
+        self.model = BiGruBatt4MaxFocalNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
@@ -34,6 +37,7 @@ class ExamplePredictor(BasePredictor):
                                           lr=self.learning_rate)
 
         self.loss = {
+            'FocalLoss': FocalLoss(),
             'BCELoss': torch.nn.BCEWithLogitsLoss()
         }[loss]
 
