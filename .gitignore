@@ -111,6 +111,4 @@ hw1/data/corpus.txt
 hw1/data/w2v
 hw1/data/w2v.pkl
 hw1/data/w2v.*.npy
-hw1/models/*/*.pkl*
-hw1/models/*/*.csv
-hw1/models/*/log.json
+hw1/models/*/*.pkl.*
