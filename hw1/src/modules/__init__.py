@@ -2,6 +2,7 @@ from .example_net import ExampleNet
 from .gru_cos_net import GruCosNet
 from .bahdanau_attentions_max_net import BahdanauAttentionsMaxNet
 from .bahdanau_attentions_max_focal_net import BahdanauAttentionsMaxFocalNet
+from .bahdanau_norm_attentions_max_focal_net import BahdanauNormAttentionsMaxFocalNet
 from .bigru_batt_max_focal_net import BiGruBattMaxFocalNet
 from .bigru_batt4_max_net import BiGruBatt4MaxNet
 from .bigru_batt4_max_focal_net import BiGruBatt4MaxFocalNet

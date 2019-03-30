@@ -48,7 +48,19 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
-            batch_size=95, 
+            batch_size=100, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BahdanauNormAttentionsMaxFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            batch_size=70, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,

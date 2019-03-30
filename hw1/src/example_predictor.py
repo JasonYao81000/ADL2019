@@ -5,7 +5,8 @@ from base_predictor import BasePredictor
 # from modules import GruCosNet
 # from modules import BahdanauAttentionsMaxNet
 # from modules import BahdanauAttentionsMaxFocalNet
-from modules import BiGruBattMaxFocalNet
+from modules import BahdanauNormAttentionsMaxFocalNet
+# from modules import BiGruBattMaxFocalNet
 # from modules import BiGruBatt4MaxNet
 # from modules import BiGruBatt4MaxFocalNet
 
@@ -24,8 +25,8 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        logging.info('building BiGruBattMaxFocalNet...')
-        self.model = BiGruBattMaxFocalNet(embedding.size(1),
+        logging.info('building BahdanauNormAttentionsMaxFocalNet...')
+        self.model = BahdanauNormAttentionsMaxFocalNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
