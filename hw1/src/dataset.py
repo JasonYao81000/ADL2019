@@ -1,6 +1,7 @@
 import random
 random.seed(9487)
 import torch
+torch.cuda.manual_seed_all(9487)
 from torch.utils.data import Dataset
 
 

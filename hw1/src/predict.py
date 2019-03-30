@@ -22,22 +22,13 @@ def main(args):
         config['model_parameters']['embedding'] = embedding.vectors
 
     # make model
-    if config['arch'] == 'ExampleNet':
+    if config['arch'] == 'BiGruMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet':
+    elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruLattMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BahdanauAttentionsMaxNet' or config['arch'] == 'BahdanauAttentionsMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BahdanauNormAttentionsMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBattMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBatt4MaxNet' or config['arch'] == 'BiGruBatt4MaxFocalNet':
+    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruBNattMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
 

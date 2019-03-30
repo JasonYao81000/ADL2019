@@ -1,5 +1,5 @@
 import torch
-
+torch.cuda.manual_seed_all(9487)
 
 class Metrics:
     def __init__(self):

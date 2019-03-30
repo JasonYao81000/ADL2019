@@ -1,4 +1,5 @@
 import torch
+torch.cuda.manual_seed_all(9487)
 import torch.nn as nn
 import torch.nn.functional as F
 

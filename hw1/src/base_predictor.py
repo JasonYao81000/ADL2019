@@ -1,4 +1,5 @@
 import torch
+torch.cuda.manual_seed_all(9487)
 import torch.utils.data.dataloader
 from torch.utils.data.dataloader import default_collate
 from tqdm import tqdm

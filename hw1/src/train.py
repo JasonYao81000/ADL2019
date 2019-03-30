@@ -28,11 +28,8 @@ def main(args):
     with open(config['train'], 'rb') as f:
         train = pickle.load(f)
 
-    if config['arch'] == 'ExampleNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'GruCosNet':
-        train.n_negative = 9
+    if config['arch'] == 'BiGruMaxFocalNet':
+        train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
@@ -43,7 +40,7 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BahdanauAttentionsMaxNet' or config['arch'] == 'BahdanauAttentionsMaxFocalNet':
+    elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruLattMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
@@ -55,7 +52,7 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BahdanauNormAttentionsMaxFocalNet':
+    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruBNattMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
@@ -67,31 +64,7 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BiGruBattMaxFocalNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=45, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=1,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'BiGruBatt4MaxNet' or config['arch'] == 'BiGruBatt4MaxFocalNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            batch_size=80, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=2,
-            device=args.device,
-            **config['model_parameters']
-        )
-
+    
     if args.load is not None:
         predictor.load(args.load)
 

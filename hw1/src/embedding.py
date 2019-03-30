@@ -1,5 +1,6 @@
 import re
 import torch
+torch.cuda.manual_seed_all(9487)
 # import pickle
 # from gensim.models import Word2Vec
 

@@ -1,14 +1,12 @@
 import torch
+torch.cuda.manual_seed_all(9487)
 import logging
 from base_predictor import BasePredictor
-# from modules import ExampleNet
-# from modules import GruCosNet
-# from modules import BahdanauAttentionsMaxNet
-# from modules import BahdanauAttentionsMaxFocalNet
-from modules import BahdanauNormAttentionsMaxFocalNet
-# from modules import BiGruBattMaxFocalNet
-# from modules import BiGruBatt4MaxNet
-# from modules import BiGruBatt4MaxFocalNet
+from modules import BiGruMaxFocalNet
+from modules import BiGruBattMaxFocalNet
+from modules import BiGruBNattMaxFocalNet
+from modules import BiGruLattMaxFocalNet
+from modules import BiGruLNattMaxFocalNet
 
 from FocalLoss import FocalLoss
 
@@ -25,9 +23,8 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        logging.info('building BahdanauNormAttentionsMaxFocalNet...')
-        self.model = BahdanauNormAttentionsMaxFocalNet(embedding.size(1),
-                                similarity=similarity)
+        logging.info('building BiGruMaxFocalNet...')
+        self.model = BiGruMaxFocalNet(embedding.size(1))
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
         self.embedding.weight = torch.nn.Parameter(embedding)
