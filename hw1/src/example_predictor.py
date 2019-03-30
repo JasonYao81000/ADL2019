@@ -1,11 +1,13 @@
 import torch
+import logging
 from base_predictor import BasePredictor
 # from modules import ExampleNet
 # from modules import GruCosNet
 # from modules import BahdanauAttentionsMaxNet
+from modules import BahdanauAttentionsMaxFocalNet
 # from modules import BiGruBattMaxNet
 # from modules import BiGruBatt4MaxNet
-from modules import BiGruBatt4MaxFocalNet
+# from modules import BiGruBatt4MaxFocalNet
 
 from FocalLoss import FocalLoss
 
@@ -22,7 +24,8 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        self.model = BiGruBatt4MaxFocalNet(embedding.size(1),
+        logging.info('building BahdanauAttentionsMaxFocalNet...')
+        self.model = BahdanauAttentionsMaxFocalNet(embedding.size(1),
                                 similarity=similarity)
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
@@ -40,6 +43,7 @@ class ExamplePredictor(BasePredictor):
             'FocalLoss': FocalLoss(),
             'BCELoss': torch.nn.BCEWithLogitsLoss()
         }[loss]
+        logging.info('using ' + loss + '...')
 
     def _run_iter(self, batch, training):
         with torch.no_grad():

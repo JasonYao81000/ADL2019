@@ -28,7 +28,7 @@ def main(args):
     elif config['arch'] == 'GruCosNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BahdanauAttentionsMaxNet':
+    elif config['arch'] == 'BahdanauAttentionsMaxNet' or config['arch'] == 'BahdanauAttentionsMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
     elif config['arch'] == 'BiGruBattMaxNet':

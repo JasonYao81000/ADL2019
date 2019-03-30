@@ -43,15 +43,15 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BahdanauAttentionsMaxNet':
+    elif config['arch'] == 'BahdanauAttentionsMaxNet' or config['arch'] == 'BahdanauAttentionsMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
-            batch_size=80, 
+            batch_size=95, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=2,
+            grad_accumulate_steps=1,
             device=args.device,
             **config['model_parameters']
         )
