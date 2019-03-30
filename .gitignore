@@ -112,3 +112,4 @@ hw1/data/w2v
 hw1/data/w2v.pkl
 hw1/data/w2v.*.npy
 hw1/models/*/*.pkl.*
+hw1/models/*/*.csv
