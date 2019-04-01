@@ -84,6 +84,20 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
+    elif config['arch'] == 'BiGruBattDropMaxFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
+            batch_size=100, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
     elif config['arch'] == 'BiGruLattMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
@@ -120,20 +134,6 @@ def main(args):
             arch=config['arch'],
             loss='FocalLoss',
             batch_size=45, 
-            max_epochs=1024, 
-            metrics=[Recall(1), Recall(10)],
-            grad_accumulate_steps=1,
-            device=args.device,
-            **config['model_parameters']
-        )
-    elif config['arch'] == 'EmbBiGruBattMaxFocalNet':
-        train.n_negative = 4
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-        predictor = PredictorClass(
-            arch=config['arch'],
-            loss='FocalLoss',
-            batch_size=100, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,

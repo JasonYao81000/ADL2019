@@ -6,10 +6,10 @@ from modules import BiGruMaxFocalNet
 from modules import BiGruBattMaxBCENet
 from modules import BiGruBattMaxFocalNet
 from modules import BiGruBatt5MaxFocalNet
+from modules import BiGruBattDropMaxFocalNet
 from modules import BiGruBNattMaxFocalNet
 from modules import BiGruLattMaxFocalNet
 from modules import BiGruLNattMaxFocalNet
-from modules import EmbBiGruBattMaxFocalNet
 
 from FocalLoss import FocalLoss
 
@@ -36,7 +36,7 @@ class ExamplePredictor(BasePredictor):
         if self.arch == 'BiGruBNattMaxFocalNet': self.model = BiGruBNattMaxFocalNet(embedding.size(1))
         if self.arch == 'BiGruLattMaxFocalNet': self.model = BiGruLattMaxFocalNet(embedding.size(1))
         if self.arch == 'BiGruLNattMaxFocalNet': self.model = BiGruLNattMaxFocalNet(embedding.size(1))
-        if self.arch == 'EmbBiGruBattMaxFocalNet': self.model = EmbBiGruBattMaxFocalNet(embedding, self.device, dropout_rate=dropout_rate)
+        if self.arch == 'BiGruBattDropMaxFocalNet': self.model = BiGruBattDropMaxFocalNet(embedding.size(1), dropout_rate=dropout_rate)
 
         if self.arch[:3] != 'Emb':
             self.embedding = torch.nn.Embedding(embedding.size(0),
