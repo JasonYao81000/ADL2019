@@ -1,7 +1,15 @@
-# How to run
+# ADL2019/hw1
 
-1. Prepare the dataset and pre-trained embeddings (FastText is used here) in `./data`:
+## 0. Requirements
+```
+torch==1.0.1
+tqdm==4.28.1
+nltk==3.4
+numpy==1.15.4
+```
 
+## 1. Data Preprocessing
+### 1. Prepare the dataset and pre-trained embeddings (FastText is used here) in `./data`.
 ```
 ./data/train.json
 ./data/valid.json
@@ -9,19 +17,36 @@
 ./data/crawl-300d-2M.vec
 ```
 
-2. Preprocess the data
+### 2. Preprocess the data
 ```
-cd src/
+cd ./ADL2019/hw1/src
 python make_dataset.py ../data/
 ```
 
-3. Then you can train a poooor example model as follow:
+### 3. How we Preprocess the Dataset
+- [x] Load pre-trained embedding `FastText`
+- [x] Tokenize the sentences using `NLTK`
+- [x] Convert token to word indices
+- [x] Sample batch and negative candidates (`positive:negative=1:4`)
+- [x] Pad samples to the same length (`context:option=300:50`)
+- [x] Simply concatenate them into single sequence
+- [x] Separate them with special tokens (`participant_1`, `participant_2`)
+- [ ] Concatenate (or add) "speaker embedding" after the embeddings
+
+## 2. Training and Prediction
 ```
-python train.py ../models/example/
+python train.py ../models/bigru_batt_5_max_focal/
+python predict.py ../models/bigru_batt_5_max_focal/ --epoch -1
 ```
 
-4. To predict, run
-```
-python predict.py ../models/example/ --epoch 3
-```
-where `--epoch` specifies the save model of which epoch to use.
+## 3. Results (Recall@10)
+
+| RNN | Attention | Concat | Pooling | Similarity | Loss | Valid Score | Test Score | 
+| --- | --------- | ------ | ------- | ---------- | ---- | ----------- | ---------- |
+| BiGRU | None             | 1 | Max | Cosine | Focal | 0.5202 | - |
+| BiGRU | Bahdanau         | 4 | Max | MLP | BCE   | 0.7512 | 9.36666 |
+| BiGRU | Bahdanau         | 4 | Max | MLP | Focal | 0.7524 | 9.35333 |
+| BiGRU | Bahdanau         | 5 | Max | MLP | Focal | - | - |
+| BiGRU | Bahdanau w/ norm | 4 | Max | MLP | Focal | 0.7458 | 9.42666 |
+| BiGRU | Luong            | 4 | Max | MLP | Focal | 0.7162 | - |
+| BiGRU | Luong w/ norm    | 4 | Max | MLP | Focal | 0.7418 | - |
