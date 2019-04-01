@@ -23,8 +23,8 @@ class ExamplePredictor(BasePredictor):
                  dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
                  similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        logging.info('building BiGruMaxFocalNet...')
-        self.model = BiGruMaxFocalNet(embedding.size(1))
+        logging.info('building BiGruLattMaxFocalNet...')
+        self.model = BiGruLattMaxFocalNet(embedding.size(1))
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
         self.embedding.weight = torch.nn.Parameter(embedding)

@@ -40,7 +40,7 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruLattMaxFocalNet':
+    elif config['arch'] == 'BiGruBattMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
@@ -52,12 +52,36 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruBNattMaxFocalNet':
+    elif config['arch'] == 'BiGruLattMaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
             batch_size=70, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BiGruBNattMaxFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            batch_size=70, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BiGruLNattMaxFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            batch_size=45, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,

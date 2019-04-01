@@ -28,7 +28,7 @@ def main(args):
     elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruLattMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruBNattMaxFocalNet':
+    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruLNattMaxFocalNet':
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
 
