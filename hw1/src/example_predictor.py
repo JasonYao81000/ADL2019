@@ -5,9 +5,11 @@ from base_predictor import BasePredictor
 from modules import BiGruMaxFocalNet
 from modules import BiGruBattMaxBCENet
 from modules import BiGruBattMaxFocalNet
+from modules import BiGruBatt5MaxFocalNet
 from modules import BiGruBNattMaxFocalNet
 from modules import BiGruLattMaxFocalNet
 from modules import BiGruLNattMaxFocalNet
+from modules import EmbBiGruBattMaxFocalNet
 
 from FocalLoss import FocalLoss
 
@@ -25,21 +27,25 @@ class ExamplePredictor(BasePredictor):
                 dropout_rate=0.2, margin=0, threshold=None,
                 similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        logging.info('building ' + arch + '...')
-        if arch == 'BiGruMaxFocalNet': self.model = BiGruMaxFocalNet(embedding.size(1))
-        if arch == 'BiGruBattMaxBCENet': self.model = BiGruBattMaxBCENet(embedding.size(1))
-        if arch == 'BiGruBattMaxFocalNet': self.model = BiGruBattMaxFocalNet(embedding.size(1))
-        if arch == 'BiGruBNattMaxFocalNet': self.model = BiGruBNattMaxFocalNet(embedding.size(1))
-        if arch == 'BiGruLattMaxFocalNet': self.model = BiGruLattMaxFocalNet(embedding.size(1))
-        if arch == 'BiGruLNattMaxFocalNet': self.model = BiGruLNattMaxFocalNet(embedding.size(1))
-        
-        self.embedding = torch.nn.Embedding(embedding.size(0),
-                                            embedding.size(1))
-        self.embedding.weight = torch.nn.Parameter(embedding)
+        self.arch = arch
+        logging.info('building ' + self.arch + '...')
+        if self.arch == 'BiGruMaxFocalNet': self.model = BiGruMaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruBattMaxBCENet': self.model = BiGruBattMaxBCENet(embedding.size(1))
+        if self.arch == 'BiGruBattMaxFocalNet': self.model = BiGruBattMaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruBatt5MaxFocalNet': self.model = BiGruBatt5MaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruBNattMaxFocalNet': self.model = BiGruBNattMaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruLattMaxFocalNet': self.model = BiGruLattMaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruLNattMaxFocalNet': self.model = BiGruLNattMaxFocalNet(embedding.size(1))
+        if self.arch == 'EmbBiGruBattMaxFocalNet': self.model = EmbBiGruBattMaxFocalNet(embedding, self.device, dropout_rate=dropout_rate)
+
+        if self.arch[:3] != 'Emb':
+            self.embedding = torch.nn.Embedding(embedding.size(0),
+                                                embedding.size(1))
+            self.embedding.weight = torch.nn.Parameter(embedding)
+            self.embedding = self.embedding.to(self.device)
 
         # use cuda
         self.model = self.model.to(self.device)
-        self.embedding = self.embedding.to(self.device)
 
         # make optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(),
@@ -52,23 +58,37 @@ class ExamplePredictor(BasePredictor):
         logging.info('using ' + loss + '...')
 
     def _run_iter(self, batch, training):
-        with torch.no_grad():
-            context = self.embedding(batch['context'].to(self.device))
-            options = self.embedding(batch['options'].to(self.device))
-        logits = self.model.forward(
-            context.to(self.device),
-            batch['context_lens'],
-            options.to(self.device),
-            batch['option_lens'])
+        if self.arch[:3] == 'Emb':
+            logits = self.model.forward(
+                batch['context'].to(self.device),
+                batch['context_lens'],
+                batch['options'].to(self.device),
+                batch['option_lens'])
+        else:
+            with torch.no_grad():
+                context = self.embedding(batch['context'].to(self.device))
+                options = self.embedding(batch['options'].to(self.device))
+            logits = self.model.forward(
+                context.to(self.device),
+                batch['context_lens'],
+                options.to(self.device),
+                batch['option_lens'])
         loss = self.loss(logits, batch['labels'].float().to(self.device))
         return logits, loss
 
     def _predict_batch(self, batch):
-        context = self.embedding(batch['context'].to(self.device))
-        options = self.embedding(batch['options'].to(self.device))
-        logits = self.model.forward(
-            context.to(self.device),
-            batch['context_lens'],
-            options.to(self.device),
-            batch['option_lens'])
+        if self.arch[:3] == 'Emb':
+            logits = self.model.forward(
+                batch['context'].to(self.device),
+                batch['context_lens'],
+                batch['options'].to(self.device),
+                batch['option_lens'])
+        else:
+            context = self.embedding(batch['context'].to(self.device))
+            options = self.embedding(batch['options'].to(self.device))
+            logits = self.model.forward(
+                context.to(self.device),
+                batch['context_lens'],
+                options.to(self.device),
+                batch['option_lens'])
         return logits
