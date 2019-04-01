@@ -1,4 +1,5 @@
 from .bigru_max_focal_net import BiGruMaxFocalNet
+from .bigru_batt_max_bce_net import BiGruBattMaxBCENet
 from .bigru_batt_max_focal_net import BiGruBattMaxFocalNet
 from .bigru_bnatt_max_focal_net import BiGruBNattMaxFocalNet
 from .bigru_latt_max_focal_net import BiGruLattMaxFocalNet

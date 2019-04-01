@@ -3,6 +3,7 @@ torch.cuda.manual_seed_all(9487)
 import logging
 from base_predictor import BasePredictor
 from modules import BiGruMaxFocalNet
+from modules import BiGruBattMaxBCENet
 from modules import BiGruBattMaxFocalNet
 from modules import BiGruBNattMaxFocalNet
 from modules import BiGruLattMaxFocalNet
@@ -20,11 +21,18 @@ class ExamplePredictor(BasePredictor):
     """
 
     def __init__(self, embedding,
-                 dropout_rate=0.2, loss='FocalLoss', margin=0, threshold=None,
-                 similarity='inner_product', **kwargs):
+                arch='BiGruMaxFocalNet', loss='FocalLoss',
+                dropout_rate=0.2, margin=0, threshold=None,
+                similarity='inner_product', **kwargs):
         super(ExamplePredictor, self).__init__(**kwargs)
-        logging.info('building BiGruLattMaxFocalNet...')
-        self.model = BiGruLattMaxFocalNet(embedding.size(1))
+        logging.info('building ' + arch + '...')
+        if arch == 'BiGruMaxFocalNet': self.model = BiGruMaxFocalNet(embedding.size(1))
+        if arch == 'BiGruBattMaxBCENet': self.model = BiGruBattMaxBCENet(embedding.size(1))
+        if arch == 'BiGruBattMaxFocalNet': self.model = BiGruBattMaxFocalNet(embedding.size(1))
+        if arch == 'BiGruBNattMaxFocalNet': self.model = BiGruBNattMaxFocalNet(embedding.size(1))
+        if arch == 'BiGruLattMaxFocalNet': self.model = BiGruLattMaxFocalNet(embedding.size(1))
+        if arch == 'BiGruLNattMaxFocalNet': self.model = BiGruLNattMaxFocalNet(embedding.size(1))
+        
         self.embedding = torch.nn.Embedding(embedding.size(0),
                                             embedding.size(1))
         self.embedding.weight = torch.nn.Parameter(embedding)

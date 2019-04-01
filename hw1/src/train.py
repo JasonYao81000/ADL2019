@@ -33,7 +33,23 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
             batch_size=500, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BiGruBattMaxBCENet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            arch=config['arch'],
+            loss='BCELoss',
+            batch_size=100, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,
@@ -45,6 +61,8 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
             batch_size=100, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
@@ -57,6 +75,8 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
             batch_size=70, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
@@ -69,6 +89,8 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
             batch_size=70, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
@@ -81,6 +103,8 @@ def main(args):
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
         predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
             batch_size=45, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],

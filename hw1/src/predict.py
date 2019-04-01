@@ -22,23 +22,16 @@ def main(args):
         config['model_parameters']['embedding'] = embedding.vectors
 
     # make model
-    if config['arch'] == 'BiGruMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruLattMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
-    elif config['arch'] == 'BiGruBNattMaxFocalNet' or config['arch'] == 'BiGruLNattMaxFocalNet':
-        from example_predictor import ExamplePredictor
-        PredictorClass = ExamplePredictor
+    from example_predictor import ExamplePredictor
+    PredictorClass = ExamplePredictor
+    predictor = PredictorClass(arch=config['arch'],
+                                batch_size=100,
+                                metrics=[],
+                                device=args.device,
+                                **config['model_parameters'])
 
-    predictor = PredictorClass(batch_size=100,
-                               metrics=[],
-                               device=args.device,
-                               **config['model_parameters'])
-    model_path = os.path.join(
-        args.model_dir,
-        'model.pkl.{}'.format(args.epoch))
+    # load model
+    model_path = os.path.join(args.model_dir, 'model.pkl.{}'.format(args.epoch))
     if args.epoch == -1: model_path = os.path.join(args.model_dir, 'model.pkl')
     logging.info('loading model from {}'.format(model_path))
     predictor.load(model_path)
