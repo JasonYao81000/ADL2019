@@ -56,7 +56,7 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BiGruBattMaxFocalNet':
+    elif config['arch'] == 'BiGruBattMaxFocalNet' or config['arch'] == 'BiGruBattMeanFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor

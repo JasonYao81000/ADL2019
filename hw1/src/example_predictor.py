@@ -5,6 +5,7 @@ from base_predictor import BasePredictor
 from modules import BiGruMaxFocalNet
 from modules import BiGruBattMaxBCENet
 from modules import BiGruBattMaxFocalNet
+from modules import BiGruBattMeanFocalNet
 from modules import BiGruBatt5MaxFocalNet
 from modules import BiGruBattDropMaxFocalNet
 from modules import BiGruBNattMaxFocalNet
@@ -32,6 +33,7 @@ class ExamplePredictor(BasePredictor):
         if self.arch == 'BiGruMaxFocalNet': self.model = BiGruMaxFocalNet(embedding.size(1))
         if self.arch == 'BiGruBattMaxBCENet': self.model = BiGruBattMaxBCENet(embedding.size(1))
         if self.arch == 'BiGruBattMaxFocalNet': self.model = BiGruBattMaxFocalNet(embedding.size(1))
+        if self.arch == 'BiGruBattMeanFocalNet': self.model = BiGruBattMeanFocalNet(embedding.size(1))
         if self.arch == 'BiGruBatt5MaxFocalNet': self.model = BiGruBatt5MaxFocalNet(embedding.size(1))
         if self.arch == 'BiGruBNattMaxFocalNet': self.model = BiGruBNattMaxFocalNet(embedding.size(1))
         if self.arch == 'BiGruLattMaxFocalNet': self.model = BiGruLattMaxFocalNet(embedding.size(1))
