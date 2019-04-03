@@ -7,3 +7,4 @@ from .bigru_batt_drop_max_focal_net import BiGruBattDropMaxFocalNet
 from .bigru_bnatt_max_focal_net import BiGruBNattMaxFocalNet
 from .bigru_latt_max_focal_net import BiGruLattMaxFocalNet
 from .bigru_lnatt_max_focal_net import BiGruLNattMaxFocalNet
+from .deep_bigru_batt_max_focal_net import DeepBiGruBattMaxFocalNet

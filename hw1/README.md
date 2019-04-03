@@ -43,12 +43,15 @@ python predict.py ../models/bigru_batt_5_max_focal/ --epoch -1
 
 | RNN | Attention | Concat | Pooling | Similarity | Loss | Valid Score | Test Score | 
 | --- | --------- | ------ | ------- | ---------- | ---- | ----------- | ---------- |
-| BiGRU | None             | 1 | Max  | Cosine | Focal | 0.5202 | - |
-| BiGRU | Bahdanau         | 4 | Max  | MLP | BCE   | 0.7512 | 9.36666 |
-| BiGRU | Bahdanau         | 4 | Max  | MLP | Focal | 0.7524 | 9.35333 |
-| BiGRU | Bahdanau         | 5 | Max  | MLP | Focal | 0.7466 | 9.43333 |
-| BiGRU | Bahdanau w/ drop | 4 | Max  | MLP | Focal | 0.7458 | 9.41333 |
-| BiGRU | Bahdanau         | 4 | Mean | MLP | Focal | 0.7474 | 9.40000 |
-| BiGRU | Bahdanau w/ norm | 4 | Max  | MLP | Focal | 0.7458 | 9.42666 |
-| BiGRU | Luong            | 4 | Max  | MLP | Focal | 0.7162 | - |
-| BiGRU | Luong w/ norm    | 4 | Max  | MLP | Focal | 0.7418 | - |
+| BiGRU      | None             | 1 | Max  | Cosine | Focal | 0.5202 | - |
+| BiGRU      | Bahdanau         | 4 | Max  | MLP | BCE   | 0.7512 | 9.36666 |
+| BiGRU      | Bahdanau         | 4 | Max  | MLP | Focal | 0.7524 | 9.35333 |
+| BiGRU      | Bahdanau         | 5 | Max  | MLP | Focal | 0.7466 | 9.43333 |
+| BiGRU      | Bahdanau w/ drop | 4 | Max  | MLP | Focal | 0.7458 | 9.41333 |
+| BiGRU      | Bahdanau         | 4 | Mean | MLP | Focal | 0.7474 | 9.40000 |
+| BiGRU      | Bahdanau w/ norm | 4 | Max  | MLP | Focal | 0.7458 | 9.42666 |
+| BiGRU      | Luong            | 4 | Max  | MLP | Focal | 0.7162 | - |
+| BiGRU      | Luong w/ norm    | 4 | Max  | MLP | Focal | 0.7418 | 9.41333 |
+| Deep BiGRU | Bahdanau         | 4 | Max  | MLP | Focal | 0.7286 | - |
+| Fat BiGRU  | Bahdanau         | 4 | Max  | MLP | Focal | - | - |
+| BiLSTM     | Bahdanau         | 4 | Max  | MLP | Focal | - | - |
