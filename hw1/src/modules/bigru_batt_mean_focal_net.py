@@ -75,9 +75,9 @@ class BiGruBattMeanFocalNet(torch.nn.Module):
                     torch.mul(context_outs, attention_context), 
                     context_outs - attention_context), dim=-1), h_1)
 
-            # Max pooling over RNN outputs.
-            # attention_context_outs_max: tensor of shape (B, H * 2)
-            attention_context_outs_max = attention_context_outs.mean(dim=1)
+            # Mean pooling over RNN outputs.
+            # attention_context_outs_mean: tensor of shape (B, H * 2)
+            attention_context_outs_mean = attention_context_outs.mean(dim=1)
 
             # Set initial hidden and cell states 
             h_1 = torch.zeros(self.num_layers * 2, option.size(0), self.hidden_size).to(option.get_device())
@@ -92,13 +92,13 @@ class BiGruBattMeanFocalNet(torch.nn.Module):
                     torch.mul(option_outs, attention_option), 
                     option_outs - attention_option), dim=-1), h_1)
 
-            # Max pooling over RNN outputs.
-            # attention_option_outs_max: tensor of shape (B, H * 2)
-            attention_option_outs_max = attention_option_outs.mean(dim=1)
+            # Mean pooling over RNN outputs.
+            # attention_option_outs_mean: tensor of shape (B, H * 2)
+            attention_option_outs_mean = attention_option_outs.mean(dim=1)
 
             # Cosine similarity between context and each option.
-            # logit = torch.nn.CosineSimilarity(dim=1)(attention_context_outs_max, attention_option_outs_max)
-            logit = self.similarity(torch.cat((attention_context_outs_max, attention_option_outs_max), dim=-1))[:, 0]
+            # logit = torch.nn.CosineSimilarity(dim=1)(attention_context_outs_mean, attention_option_outs_mean)
+            logit = self.similarity(torch.cat((attention_context_outs_mean, attention_option_outs_mean), dim=-1))[:, 0]
             logits.append(logit)
 
         logits = F.softmax(torch.stack(logits, 1), dim=1)

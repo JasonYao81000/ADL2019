@@ -140,7 +140,35 @@ def main(args):
             device=args.device,
             **config['model_parameters']
         )
-    elif config['arch'] == 'BiLstmBattMaxFocalNet':
+    elif config['arch'] == 'BiLstmBattMaxBCENet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            arch=config['arch'],
+            loss='BCELoss',
+            batch_size=100, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BiLstmBattMaxFocalNet' or config['arch'] == 'BiLstmBattMeanFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
+            batch_size=100, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'BiLstmBatt5MaxFocalNet':
         train.n_negative = 4
         from example_predictor import ExamplePredictor
         PredictorClass = ExamplePredictor
@@ -176,6 +204,20 @@ def main(args):
             arch=config['arch'],
             loss='FocalLoss',
             batch_size=50, 
+            max_epochs=1024, 
+            metrics=[Recall(1), Recall(10)],
+            grad_accumulate_steps=1,
+            device=args.device,
+            **config['model_parameters']
+        )
+    elif config['arch'] == 'ThinBiGruBattMaxFocalNet':
+        train.n_negative = 4
+        from example_predictor import ExamplePredictor
+        PredictorClass = ExamplePredictor
+        predictor = PredictorClass(
+            arch=config['arch'],
+            loss='FocalLoss',
+            batch_size=150, 
             max_epochs=1024, 
             metrics=[Recall(1), Recall(10)],
             grad_accumulate_steps=1,

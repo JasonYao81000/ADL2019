@@ -54,4 +54,8 @@ python predict.py ../models/bigru_batt_5_max_focal/ --epoch -1
 | BiGRU      | Luong w/ norm    | 4 | Max  | MLP | Focal | 0.7418 | 9.41333 |
 | Deep BiGRU | Bahdanau         | 4 | Max  | MLP | Focal | 0.7286 | 9.40666 |
 | Fat BiGRU  | Bahdanau         | 4 | Max  | MLP | Focal | 0.7354 | 9.46000 |
+| Thin BiGRU  | Bahdanau         | 4 | Max  | MLP | Focal | 0.7516 | - |
+| BiLSTM     | Bahdanau         | 4 | Max  | MLP | BCE | 0.7554 | - |
 | BiLSTM     | Bahdanau         | 4 | Max  | MLP | Focal | 0.7522 | 9.37333 |
+| BiLSTM     | Bahdanau         | 5 | Max  | MLP | Focal | 0.7490 | - |
+| BiLSTM     | Bahdanau         | 4 | Mean | MLP | Focal | 0.7426 | - |
