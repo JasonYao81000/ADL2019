@@ -115,3 +115,9 @@ hw1/models/*/*.pkl.*
 hw1/models/*/*.csv
 hw1/ensemble/csv/*
 hw1/ensemble/*.csv
+
+# hw2
+hw2/data/GloVe/*
+hw2/data/language_model/*
+hw2/dataset/classification/*
+hw2/model/*
