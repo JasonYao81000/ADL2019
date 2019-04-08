@@ -61,7 +61,7 @@ class BaseTrainer:
         tqdm.write('[-] Start training!')
         bar = tqdm(
             range(self._cfg.n_epochs), desc='[Total progress]', leave=False,
-            position=0, dynamic_ncols=True)
+            position=0, dynamic_ncols=True, ascii=True)
         for epoch in bar:
             self._stat.reset()
             self._epoch = epoch + 1
@@ -87,7 +87,7 @@ class BaseTrainer:
 
         bar = tqdm(
             data_loader, desc='[{} epoch {:2}]'.format(desc_prefix, self._epoch),
-            leave=False, position=1, dynamic_ncols=True)
+            leave=False, position=1, dynamic_ncols=True, ascii=True)
         for idx, batch in enumerate(bar):
             output = self._run_batch(batch)
             loss = self._calculate_losses(mode, output, batch)

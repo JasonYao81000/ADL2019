@@ -84,7 +84,7 @@ def predict(device, data_loader, max_sent_len, elmo_embedder, model):
     with torch.no_grad():
         Ids = []
         predictions = []
-        bar = tqdm(data_loader, desc='[Predict]', leave=False, dynamic_ncols=True)
+        bar = tqdm(data_loader, desc='[Predict]', leave=False, dynamic_ncols=True, ascii=True)
         for batch in bar:
             Ids += batch['Id']
             text_word = batch['text_word'].to(device=device)

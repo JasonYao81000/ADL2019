@@ -28,14 +28,14 @@ class SpecialVocab:
 
 
 def load_embedding(embedding_path):
-    with open(embedding_path) as f:
+    with open(embedding_path, encoding='utf8') as f:
         lines = f.readlines()
     if len(lines[0].strip().split()) == 2:
         lines = lines[1:]
     emb = {}
     bar = tqdm(
         lines, desc='[*] Loading embedding from {}'.format(embedding_path),
-        dynamic_ncols=True)
+        dynamic_ncols=True, ascii=True)
     for l in bar:
         if '\xa0' in l or '\x85' in l:
             continue

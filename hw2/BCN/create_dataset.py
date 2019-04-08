@@ -26,11 +26,11 @@ def parse_args():
 
 def load_data(mode, data_path, nlp):
     print('[*] Loading {} data from {}'.format(mode, data_path))
-    with data_path.open() as f:
+    with data_path.open(encoding='utf8') as f:
         reader = csv.DictReader(f)
         data = [r for r in reader]
 
-    for d in tqdm(data, desc='[*] Tokenizing', dynamic_ncols=True):
+    for d in tqdm(data, desc='[*] Tokenizing', dynamic_ncols=True, ascii=True):
         text = re.sub('-+', ' ', d['text'])
         text = re.sub('\s+', ' ', text)
         doc = nlp(text)
@@ -46,7 +46,7 @@ def create_vocab(data, cfg, dataset_dir):
     for m, d in data.items():
         bar = tqdm(
             d, desc='[*] Collecting word tokens form {} data'.format(m),
-            dynamic_ncols=True)
+            dynamic_ncols=True, ascii=True)
         for dd in bar:
             words.update([w.lower() for w in dd['text']])
         bar.close()
