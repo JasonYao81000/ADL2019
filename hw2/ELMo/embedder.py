@@ -11,10 +11,11 @@ class Embedder:
     the ``ctx_emb_dim`` parameter.
     """
 
-    def __init__(self, ctx_emb_dim):
+    def __init__(self, n_ctx_embs, ctx_emb_dim):
         """
         The value of the parameters should also be specified in the BCN model config.
         """
+        self.n_ctx_embs = n_ctx_embs
         self.ctx_emb_dim = ctx_emb_dim
         # TODO
 
@@ -31,13 +32,13 @@ class Embedder:
 
         Returns
         -------
-        ``np.ndarray(``
+        ``np.ndarray``
             The contextualized embedding of the sentence tokens.
 
             The ndarray shape must be
-            ``(len(sentences), min(max(map(len, sentences)), max_sent_len), self.ctx_emb_dim)``
+            ``(len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim)``
             and dtype must be ``np.float32``.
         """
         # TODO
-        return np.empty(
-            (len(sentences), min(max(map(len, sentences)), max_sent_len), 0), dtype=np.float32)
+        return np.zeros(
+            (len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim), dtype=np.float32)
