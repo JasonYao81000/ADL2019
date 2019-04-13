@@ -106,7 +106,7 @@ def predict(device, data_loader, max_sent_len, elmo_embedder, model):
 
 
 def save_predictions(Ids, predictions, output_path):
-    with output_path.open(mode='w') as f:
+    with output_path.open(mode='w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=['Id', 'label'])
         writer.writeheader()
         writer.writerows(
