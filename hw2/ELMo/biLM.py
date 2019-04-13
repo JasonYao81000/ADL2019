@@ -24,6 +24,7 @@ from .dataloader import load_embedding
 from .utils import dict2namedtuple
 from collections import Counter
 import numpy as np
+import pickle
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)-15s %(levelname)s: %(message)s')
 
@@ -551,22 +552,40 @@ def train():
     char_lexicon = None
     char_emb_layer = None
 
-  train = create_batches(
-    train_data, opt.batch_size, word_lexicon, char_lexicon, config, use_cuda=use_cuda)
-
+  if os.path.isfile(os.path.join(opt.model, 'train.pkl')):
+    with open(os.path.join(opt.model, 'train.pkl'), mode='rb') as f:
+      train = pickle.load(f)
+  else:
+    train = create_batches(
+      train_data, opt.batch_size, word_lexicon, char_lexicon, config, use_cuda=use_cuda)
+    with open(os.path.join(opt.model, 'train.pkl'), mode='wb') as f:
+      pickle.dump(train, f)
+  
   if opt.eval_steps is None:
     opt.eval_steps = len(train[0])
   logging.info('Evaluate every {0} batches.'.format(opt.eval_steps))
 
   if valid_data is not None:
-    valid = create_batches(
-      valid_data, opt.batch_size, word_lexicon, char_lexicon, config, sort=False, shuffle=False, use_cuda=use_cuda)
+    if os.path.isfile(os.path.join(opt.model, 'valid.pkl')):
+      with open(os.path.join(opt.model, 'valid.pkl'), mode='rb') as f:
+        valid = pickle.load(f)
+    else:
+      valid = create_batches(
+        valid_data, opt.batch_size, word_lexicon, char_lexicon, config, sort=False, shuffle=False, use_cuda=use_cuda)
+      with open(os.path.join(opt.model, 'valid.pkl'), mode='wb') as f:
+        pickle.dump(valid, f)
   else:
     valid = None
 
   if test_data is not None:
-    test = create_batches(
-      test_data, opt.batch_size, word_lexicon, char_lexicon, config, sort=False, shuffle=False, use_cuda=use_cuda)
+    if os.path.isfile(os.path.join(opt.model, 'test.pkl')):
+      with open(os.path.join(opt.model, 'test.pkl'), mode='rb') as f:
+        test = pickle.load(f)
+    else:
+      test = create_batches(
+        test_data, opt.batch_size, word_lexicon, char_lexicon, config, sort=False, shuffle=False, use_cuda=use_cuda)
+      with open(os.path.join(opt.model, 'test.pkl'), mode='wb') as f:
+        pickle.dump(test, f)
   else:
     test = None
 

@@ -1,5 +1,5 @@
 import numpy as np
-
+from .elmo import Embedder as ELMoEmbedder
 
 class Embedder:
     """
@@ -18,6 +18,7 @@ class Embedder:
         self.n_ctx_embs = n_ctx_embs
         self.ctx_emb_dim = ctx_emb_dim
         # TODO
+        self.e = ELMoEmbedder('./ELMo/144')
 
     def __call__(self, sentences, max_sent_len):
         """
@@ -40,5 +41,10 @@ class Embedder:
             and dtype must be ``np.float32``.
         """
         # TODO
-        return np.zeros(
-            (len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim), dtype=np.float32)
+        results = np.zeros((len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim), dtype=np.float32)
+        embeddings = self.e.sents2elmo(sentences, output_layer=-2)
+        for i, embedding in enumerate(embeddings):
+            embedding = np.transpose(embedding, (1, 0, 2))
+            results[i, :embedding.shape[0], :, :] = embedding
+
+        return results

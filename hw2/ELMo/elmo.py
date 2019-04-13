@@ -93,8 +93,8 @@ def create_batches(x, batch_size, word2id, char2id, config, perm=None, shuffle=F
         if text is not None:
             batches_text = [batches_text[i] for i in perm]
 
-    logging.info("{} batches, avg len: {:.1f}".format(
-        nbatch, sum_len / len(x)))
+    # logging.info("{} batches, avg len: {:.1f}".format(
+    #     nbatch, sum_len / len(x)))
     recover_ind = [item for sublist in batches_ind for item in sublist]
     if text is not None:
         return batches_w, batches_c, batches_lens, batches_masks, batches_text, recover_ind
@@ -108,7 +108,7 @@ class Embedder(object):
         self.batch_size = batch_size
 
     def get_model(self):
-        # torch.cuda.set_device(1)
+        torch.cuda.set_device(1)
         self.use_cuda = torch.cuda.is_available()
         # load the model configurations
         args2 = dict2namedtuple(json.load(codecs.open(
@@ -182,9 +182,11 @@ class Embedder(object):
 
         cnt = 0
 
+        self.model.eval()
         after_elmo = []
         for w, c, lens, masks, texts in zip(test_w, test_c, test_lens, test_masks, test_text):
-            output = self.model.forward(w, c, masks)
+            with torch.no_grad():
+                output = self.model.forward(w, c, masks)
             for i, text in enumerate(texts):
 
                 if self.config['encoder']['name'].lower() == 'lstm':
