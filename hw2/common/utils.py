@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 
 def load_pkl(pkl_path):
-    with open(pkl_path, mode='rb', encoding="utf-8") as f:
+    with open(pkl_path, mode='rb') as f:
         obj = pickle.load(f)
 
     return obj
