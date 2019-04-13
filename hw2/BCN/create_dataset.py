@@ -26,7 +26,7 @@ def parse_args():
 
 def load_data(mode, data_path, nlp):
     print('[*] Loading {} data from {}'.format(mode, data_path))
-    with data_path.open() as f:
+    with data_path.open(encoding="utf-8") as f:
         reader = csv.DictReader(f)
         data = [r for r in reader]
 
