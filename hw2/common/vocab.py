@@ -35,7 +35,7 @@ def load_embedding(tokens, embedding_path):
         emb = {}
         bar = tqdm(
             f, desc='[*] Loading embedding from {}'.format(embedding_path),
-            dynamic_ncols=True)
+            dynamic_ncols=True, ascii=True)
         for l in bar:
             if '\xa0' in l or '\x85' in l:
                 continue
