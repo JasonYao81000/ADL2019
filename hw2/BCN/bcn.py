@@ -30,8 +30,11 @@ class HighwayNetwork(nn.Module):
 
 
 class Embedding(nn.Module):
-    def __init__(self, word_vocab, char_vocab, char_conv_kernel_size, ctx_emb_dim):
+    def __init__(self, word_vocab, char_vocab, char_conv_kernel_size, n_ctx_embs,
+                 ctx_emb_dim):
         super().__init__()
+
+        self.n_ctx_embs = n_ctx_embs
 
         word_dim, char_dim = word_vocab.emb_dim, char_vocab.emb_dim
         self.emb_dim = word_vocab.emb_dim + char_vocab.emb_dim + ctx_emb_dim
@@ -52,6 +55,10 @@ class Embedding(nn.Module):
             self.char_embedding = nn.Embedding(
                 len(char_vocab), char_dim, padding_idx=char_vocab.sp.pad.idx)
 
+        if self.n_ctx_embs > 0:
+            self.ctx_emb_weight = nn.Parameter(
+                torch.full((n_ctx_embs, 1), 1 / n_ctx_embs))
+
         pad_size = ((char_conv_kernel_size - 1) // 2, char_conv_kernel_size // 2)
         self.const_pad1d = nn.ConstantPad1d(pad_size, 0)
         self.char_conv = nn.Conv1d(char_dim, char_dim, char_conv_kernel_size)
@@ -67,7 +74,12 @@ class Embedding(nn.Module):
         char_emb = F.max_pool1d(char_emb, word_len, stride=1)
         char_emb = char_emb.squeeze().reshape(batch_size, seq_len, emb_dim)
 
-        emb = torch.cat((word_emb, char_emb, ctx_emb), dim=-1)
+        if self.n_ctx_embs > 0:
+            ctx_emb = (ctx_emb * self.ctx_emb_weight).sum(dim=2)
+            emb = torch.cat((word_emb, char_emb, ctx_emb), dim=-1)
+        else:
+            emb = torch.cat((word_emb, char_emb), dim=-1)
+
         emb = self.highway(emb)
 
         return emb
@@ -140,12 +152,12 @@ class BatchNormMaxoutNetwork(nn.Module):
 
 
 class BCN(nn.Module):
-    def __init__(self, word_vocab, char_vocab, char_conv_kernel_size, ctx_emb_dim,
-                 d_model, dropout):
+    def __init__(self, word_vocab, char_vocab, char_conv_kernel_size, n_ctx_embs,
+                 ctx_emb_dim, d_model, dropout):
         super().__init__()
 
         self.embedding = Embedding(
-            word_vocab, char_vocab, char_conv_kernel_size, ctx_emb_dim)
+            word_vocab, char_vocab, char_conv_kernel_size, n_ctx_embs, ctx_emb_dim)
         self.dropout = VariationalDropout(dropout) if dropout != 0 else None
         self.encoder1 = nn.LSTM(
             self.embedding.emb_dim, d_model, batch_first=True, bidirectional=True)

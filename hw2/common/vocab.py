@@ -27,21 +27,22 @@ class SpecialVocab:
         raise StopIteration
 
 
-def load_embedding(embedding_path):
-    with open(embedding_path, encoding="utf-8") as f:
-        lines = f.readlines()
-    if len(lines[0].strip().split()) == 2:
-        lines = lines[1:]
-    emb = {}
-    bar = tqdm(
-        lines, desc='[*] Loading embedding from {}'.format(embedding_path),
-        dynamic_ncols=True, ascii=True)
-    for l in bar:
-        if '\xa0' in l or '\x85' in l:
-            continue
-        v, *e = l.strip().split(' ')
-        emb[v.lower()] = list(map(float, e))
-    bar.close()
+def load_embedding(tokens, embedding_path):
+    with open(embedding_path, encoding="utf8") as f:
+        header = f.readline()
+        if len(header.strip().split()) != 2:
+            f.seek(0)
+        emb = {}
+        bar = tqdm(
+            f, desc='[*] Loading embedding from {}'.format(embedding_path),
+            dynamic_ncols=True)
+        for l in bar:
+            if '\xa0' in l or '\x85' in l:
+                continue
+            v, *e = l.strip().split(' ')
+            if v.lower() in tokens:
+                emb[v.lower()] = list(map(float, e))
+        bar.close()
 
     return emb
 
@@ -57,7 +58,7 @@ class Vocab:
                 raise ValueError('Vocab: Please specify whether the embedding should be'
                                  'freezed or not')
             self.freeze_emb = freeze_embedding
-            emb = load_embedding(embedding_path)
+            emb = load_embedding(tokens, embedding_path)
             self._emb_dim = len(emb['the'])
             self._ie = np.random.normal(
                 size=(len(self._special) + len(tokens), self._emb_dim))

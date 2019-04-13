@@ -72,7 +72,7 @@ def main(model_dir):
     print(
         '[-] Model checkpoints and training log will be saved to {}\n'
         .format(model_dir))
-    print("1")
+
     device = torch.device('{}:{}'.format(cfg.device.type, cfg.device.ordinal))
     random.seed(cfg.random_seed)
     np.random.seed(cfg.random_seed)
@@ -115,6 +115,7 @@ def main(model_dir):
         elmo_embedder = None
 
     print('[*] Creating model\n')
+    cfg.net.n_ctx_embs = cfg.elmo_embedder.n_ctx_embs if cfg.use_elmo else 0
     cfg.net.ctx_emb_dim = cfg.elmo_embedder.ctx_emb_dim if cfg.use_elmo else 0
     model = Model(device, word_vocab, char_vocab, cfg.net, cfg.optim)
 

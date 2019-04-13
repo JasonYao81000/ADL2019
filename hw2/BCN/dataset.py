@@ -12,11 +12,11 @@ class Part1Dataset(Dataset):
             'text_word': [word_vocab.vtoi(w.lower()) for w in d['text']],
             'text_char': [[char_vocab.vtoi(c) for c in w] for w in d['text']],
             'label': int(d['label']) - 1
-        } for d in tqdm(data, desc='[*] Indexizing', dynamic_ncols=True, ascii=True)]
+        } for d in tqdm(data, desc='[*] Indexizing', dynamic_ncols=True)]
 
         token_cnt = oov_cnt = 0
         unk_idx = word_vocab.sp.unk.idx
-        for d in tqdm(self._data, desc='[*] Calculating OOV rate', dynamic_ncols=True, ascii=True):
+        for d in tqdm(self._data, desc='[*] Calculating OOV rate', dynamic_ncols=True):
             for t in d['text_word']:
                 token_cnt += 1
                 if t == unk_idx:

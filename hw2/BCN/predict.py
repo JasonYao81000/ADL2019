@@ -70,6 +70,7 @@ def main(model_dir, epoch, batch_size):
         elmo_embedder = None
 
     print('[*] Creating model\n')
+    cfg.net.n_ctx_embs = cfg.elmo_embedder.n_ctx_embs if cfg.use_elmo else 0
     cfg.net.ctx_emb_dim = cfg.elmo_embedder.ctx_emb_dim if cfg.use_elmo else 0
     model = Model(device, word_vocab, char_vocab, cfg.net, cfg.optim)
     model.load_state(ckpt_path)
@@ -84,7 +85,7 @@ def predict(device, data_loader, max_sent_len, elmo_embedder, model):
     with torch.no_grad():
         Ids = []
         predictions = []
-        bar = tqdm(data_loader, desc='[Predict]', leave=False, dynamic_ncols=True, ascii=True)
+        bar = tqdm(data_loader, desc='[Predict]', leave=False, dynamic_ncols=True)
         for batch in bar:
             Ids += batch['Id']
             text_word = batch['text_word'].to(device=device)
@@ -105,7 +106,7 @@ def predict(device, data_loader, max_sent_len, elmo_embedder, model):
 
 
 def save_predictions(Ids, predictions, output_path):
-    with output_path.open(mode='w', newline='') as f:
+    with output_path.open(mode='w') as f:
         writer = csv.DictWriter(f, fieldnames=['Id', 'label'])
         writer.writeheader()
         writer.writerows(
