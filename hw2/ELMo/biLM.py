@@ -181,6 +181,7 @@ def create_batches(x, batch_size, word2id, char2id, config, perm=None, shuffle=T
   size = batch_size
   nbatch = (len(x) - 1) // size + 1
   for i in range(nbatch):
+    print("Creating batch: {}/{}".format(i, nbatch), end='\r')
     start_id, end_id = i * size, (i + 1) * size
     bw, bc, blens, bmasks = create_one_batch(x[start_id: end_id], word2id, char2id, config, sort=sort)
     sum_len += sum(blens)
@@ -188,6 +189,7 @@ def create_batches(x, batch_size, word2id, char2id, config, perm=None, shuffle=T
     batches_c.append(bc)
     batches_lens.append(blens)
     batches_masks.append(bmasks)
+  print()
 
   if sort:
     perm = list(range(nbatch))
@@ -292,13 +294,14 @@ def eval_model(model, valid):
     model.classify_layer.update_embedding_matrix()
   total_loss, total_tag = 0.0, 0
   valid_w, valid_c, valid_lens, valid_masks = valid
-  for w, c, lens, masks in zip(valid_w, valid_c, valid_lens, valid_masks):
-    loss_forward, loss_backward = model.forward(w, c, masks)
-    total_loss += loss_forward.data[0]
-    n_tags = sum(lens)
-    total_tag += n_tags
+  with torch.no_grad():
+    for w, c, lens, masks in zip(valid_w, valid_c, valid_lens, valid_masks):
+      loss_forward, loss_backward = model.forward(w, c, masks)
+      total_loss += loss_forward.data
+      n_tags = sum(lens)
+      total_tag += n_tags
   model.train()
-  return np.exp(total_loss / total_tag)
+  return np.exp(total_loss.cpu() / total_tag)
 
 
 def train_model(epoch, opt, model, optimizer,
@@ -340,17 +343,17 @@ def train_model(epoch, opt, model, optimizer,
     loss_forward, loss_backward = model.forward(w, c, masks)
 
     loss = (loss_forward + loss_backward) / 2.0
-    total_loss += loss_forward.data[0]
+    total_loss += loss_forward.data
     n_tags = sum(lens)
     total_tag += n_tags
     loss.backward()
 
-    torch.nn.utils.clip_grad_norm(model.parameters(), opt.clip_grad)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), opt.clip_grad)
     optimizer.step()
     if cnt * opt.batch_size % 1024 == 0:
       logging.info("Epoch={} iter={} lr={:.6f} train_ppl={:.6f} time={:.2f}s".format(
         epoch, cnt, optimizer.param_groups[0]['lr'],
-        np.exp(total_loss / total_tag), time.time() - start_time
+        np.exp(total_loss.cpu() / total_tag), time.time() - start_time
       ))
       start_time = time.time()
 

@@ -121,3 +121,4 @@ hw2/data/GloVe/*
 hw2/data/language_model/*
 hw2/dataset/classification/*
 hw2/model/*
+hw2/ELMo/output/*
