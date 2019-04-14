@@ -18,7 +18,7 @@ class Embedder:
         self.n_ctx_embs = n_ctx_embs
         self.ctx_emb_dim = ctx_emb_dim
         # TODO
-        self.e = ELMoEmbedder('./ELMo/144')
+        self.e = ELMoEmbedder('./ELMo/output')
 
     def __call__(self, sentences, max_sent_len):
         """

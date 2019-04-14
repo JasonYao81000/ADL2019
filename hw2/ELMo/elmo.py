@@ -114,7 +114,7 @@ class Embedder(object):
         args2 = dict2namedtuple(json.load(codecs.open(
             os.path.join(self.model_dir, 'config.json'), 'r', encoding='utf-8')))
 
-        with open(os.path.join(self.model_dir, args2.config_path), 'r') as fin:
+        with open(os.path.join(args2.config_path), 'r') as fin:
             config = json.load(fin)
 
         # For the model trained with character-based word encoder.
