@@ -1,4 +1,5 @@
 import numpy as np
+from .testELMo import TestWeightedLayers 
 
 
 class Embedder:
@@ -17,6 +18,7 @@ class Embedder:
         """
         self.n_ctx_embs = n_ctx_embs
         self.ctx_emb_dim = ctx_emb_dim
+        self.embeded = TestWeightedLayers
         # TODO
 
     def __call__(self, sentences, max_sent_len):
@@ -40,5 +42,12 @@ class Embedder:
             and dtype must be ``np.float32``.
         """
         # TODO
-        return np.zeros(
-            (len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim), dtype=np.float32)
+        results = np.zeros((len(sentences), min(max(map(len, sentences)), max_sent_len), self.n_ctx_embs, self.ctx_emb_dim), dtype=np.float32)
+        embeddings = self.embeded._check_weighted_layer(sentences, 2, False, False)
+        for i, embedding in enumerate(embeddings):
+            print(embedding)
+            embedding = np.transpose(embedding, (1, 0, 2))
+            results[i, :embedding.shape[0], :, :] = embedding
+
+        return results
+        
