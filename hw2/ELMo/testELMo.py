@@ -18,32 +18,36 @@ class TestWeightedLayers(object):
         print("1")
 #        tf.global_variables_initializer()
 #        sess = tf.Session()
-        with tf.Session() as sess:
-            print("2")
-            FIXTURES = './ELMo/corpus_tokenized/'
-            # create the Batcher
-            vocab_file = os.path.join(FIXTURES, 'train.txt')
-            print(vocab_file)
-            batcher = Batcher(vocab_file, 50)
-    
-            # load the model
-            options_file = os.path.join(FIXTURES, 'options.json')
-            weight_file = os.path.join(FIXTURES, 'allennlp.hdf5')
-            print("3")
-            character_ids = tf.placeholder('int32', (None, None, 50))
-            model = BidirectionalLanguageModel(
-                options_file, weight_file, max_batch_size=4)
-            bilm_ops = model(character_ids)
-            print("4")
-            weighted_ops = []
-            for k in range(2):
-                ops = weight_layers(str(k), bilm_ops, l2_coef=l2_coef, 
-                                         do_layer_norm=do_layer_norm,
-                                         use_top_only=use_top_only)
-                weighted_ops.append(ops)
-    
-            # initialize
-            print("5")
+        
+        print("2")
+        FIXTURES = './ELMo/corpus_tokenized/'
+        # create the Batcher
+        vocab_file = os.path.join(FIXTURES, 'train.txt')
+        print(vocab_file)
+        batcher = Batcher(vocab_file, 50)
+
+        # load the model
+        options_file = os.path.join(FIXTURES, 'options.json')
+        weight_file = os.path.join(FIXTURES, 'allennlp.hdf5')
+        print("3")
+        character_ids = tf.placeholder('int32', (None, None, 50))
+        model = BidirectionalLanguageModel(
+            options_file, weight_file, max_batch_size=4)
+        bilm_ops = model(character_ids)
+        print("4")
+        weighted_ops = []
+#        for k in range(2):
+#            ops = weight_layers(str(k), bilm_ops, l2_coef=l2_coef, 
+#                                     do_layer_norm=do_layer_norm,
+#                                     use_top_only=use_top_only)
+#            weighted_ops.append(ops)
+#    
+#            # initialize
+#            print("5")
+        ops = model(character_ids)
+        
+        config = tf.ConfigProto(allow_soft_placement=True)
+        with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
 
 
@@ -51,7 +55,7 @@ class TestWeightedLayers(object):
             print(sentences)        
     #        X_chars = batcher.batch_sentences(sentences)
             print("7")
-            ops = model(character_ids)
+            
             print("8")
             print(ops)
             print(character_ids)

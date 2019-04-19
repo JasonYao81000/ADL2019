@@ -121,3 +121,13 @@ hw2/data/GloVe/*
 hw2/data/language_model/*
 hw2/dataset/classification/*
 hw2/model/*
+*.hdf5
+*.meta
+*.index
+*.data-00000-of-00001
+hw2/ELMo/corpus_tokenized/char.dic
+hw2/ELMo/corpus_tokenized/events.out.tfevents.1555216076.DESKTOP-7EFG563
+hw2/ELMo/corpus_tokenized/events.out.tfevents.1555217227.DESKTOP-7EFG563
+hw2/ELMo/corpus_tokenized/options.json
+hw2/ELMo/corpus_tokenized/train.txt
+hw2/ELMo/corpus_tokenized/word.dic
