@@ -17,7 +17,7 @@ class Stat:
         log_fieldnames = ['{}_{}'.format(mode, name) for mode, name
                           in product(['train', 'eval'], self._fieldnames)]
         self._log_writer = csv.DictWriter(
-            log_path.open(mode='w', buffering=1), fieldnames=log_fieldnames)
+            log_path.open(mode='w', buffering=1, newline=''), fieldnames=log_fieldnames)
         self._log_writer.writeheader()
 
     def reset(self):
