@@ -1,8 +1,8 @@
 import numpy as np
 # from .elmo import Embedder as ELMoEmbedder
 from flair.data import Sentence
-from flair.embeddings import WordEmbeddings
-from flair.embeddings import FlairEmbeddings
+# from flair.embeddings import WordEmbeddings
+# from flair.embeddings import FlairEmbeddings
 # from flair.embeddings import BertEmbeddings
 from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import StackedEmbeddings
@@ -27,9 +27,9 @@ class Embedder:
         # self.e = ELMoEmbedder('./ELMo/output')
         # create a StackedEmbedding object that combines glove and forward/backward flair embeddings
         self.stacked_embeddings = StackedEmbeddings([
-            WordEmbeddings('glove'),            # 100
-            FlairEmbeddings('news-forward'),    # 2048
-            FlairEmbeddings('news-backward'),   # 2048
+            # WordEmbeddings('glove'),            # 100
+            # FlairEmbeddings('news-forward'),    # 2048
+            # FlairEmbeddings('news-backward'),   # 2048
             ELMoEmbeddings('original')          # 3072
         ])
         # self.flair_embedding_forward = FlairEmbeddings('news-forward')      # 2048
@@ -70,7 +70,9 @@ class Embedder:
         self.stacked_embeddings.embed(Sentences)
         for i, sentence in enumerate(Sentences):
             for j, token in enumerate(sentence):
-                results[i, j, 0, :] = token.embedding
+                results[i, j, 0, :] = token.embedding[0:1024]
+                results[i, j, 1, :] = token.embedding[1024:2048]
+                results[i, j, 2, :] = token.embedding[2048:3072]
 
         # # Create sentences
         # Sentences = [Sentence(' '.join(x)) for x in sentences]
