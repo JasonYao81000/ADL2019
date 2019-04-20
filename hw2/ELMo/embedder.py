@@ -3,8 +3,8 @@ import numpy as np
 from flair.data import Sentence
 # from flair.embeddings import WordEmbeddings
 # from flair.embeddings import FlairEmbeddings
-# from flair.embeddings import BertEmbeddings
-from flair.embeddings import ELMoEmbeddings
+from flair.embeddings import BertEmbeddings
+# from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import StackedEmbeddings
 
 class Embedder:
@@ -30,7 +30,8 @@ class Embedder:
             # WordEmbeddings('glove'),            # 100
             # FlairEmbeddings('news-forward'),    # 2048
             # FlairEmbeddings('news-backward'),   # 2048
-            ELMoEmbeddings('original')          # 3072
+            # ELMoEmbeddings('original')          # 3072
+            BertEmbeddings('bert-large-uncased')  # 4096
         ])
         # self.flair_embedding_forward = FlairEmbeddings('news-forward')      # 2048
         # self.flair_embedding_backward = FlairEmbeddings('news-backward')    # 2048
@@ -73,6 +74,7 @@ class Embedder:
                 results[i, j, 0, :] = token.embedding[0:1024]
                 results[i, j, 1, :] = token.embedding[1024:2048]
                 results[i, j, 2, :] = token.embedding[2048:3072]
+                results[i, j, 3, :] = token.embedding[3072:4096]
 
         # # Create sentences
         # Sentences = [Sentence(' '.join(x)) for x in sentences]
