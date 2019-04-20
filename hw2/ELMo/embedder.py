@@ -3,8 +3,8 @@ import numpy as np
 from flair.data import Sentence
 # from flair.embeddings import WordEmbeddings
 # from flair.embeddings import FlairEmbeddings
+from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import BertEmbeddings
-# from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import StackedEmbeddings
 
 class Embedder:
@@ -27,16 +27,12 @@ class Embedder:
         # self.e = ELMoEmbedder('./ELMo/output')
         # create a StackedEmbedding object that combines glove and forward/backward flair embeddings
         self.stacked_embeddings = StackedEmbeddings([
-            # WordEmbeddings('glove'),            # 100
-            # FlairEmbeddings('news-forward'),    # 2048
-            # FlairEmbeddings('news-backward'),   # 2048
-            # ELMoEmbeddings('original')          # 3072
-            BertEmbeddings('bert-large-uncased')  # 4096
+            # WordEmbeddings('glove'),              # 100
+            # FlairEmbeddings('news-forward'),      # 2048
+            # FlairEmbeddings('news-backward'),     # 2048
+            ELMoEmbeddings('original'),             # 3072
+            BertEmbeddings('bert-large-uncased'),   # 4096
         ])
-        # self.flair_embedding_forward = FlairEmbeddings('news-forward')      # 2048
-        # self.flair_embedding_backward = FlairEmbeddings('news-backward')    # 2048
-        # self.bert_embedding = BertEmbeddings('bert-base-uncased')           # 3072
-        # self.elmo_embedding = ELMoEmbeddings('original')                    # 3072
 
     def __call__(self, sentences, max_sent_len):
         """
@@ -71,24 +67,12 @@ class Embedder:
         self.stacked_embeddings.embed(Sentences)
         for i, sentence in enumerate(Sentences):
             for j, token in enumerate(sentence):
-                results[i, j, 0, :] = token.embedding[0:1024]
-                results[i, j, 1, :] = token.embedding[1024:2048]
-                results[i, j, 2, :] = token.embedding[2048:3072]
-                results[i, j, 3, :] = token.embedding[3072:4096]
-
-        # # Create sentences
-        # Sentences = [Sentence(' '.join(x)) for x in sentences]
-        # # embed words in sentence
-        # self.bert_embedding.embed(Sentences)
-        # for i, sentence in enumerate(Sentences):
-        #     for j, token in enumerate(sentence):
-        #         results[i, j, 0, :] = token.embedding
-
-        # self.elmo_embedding.embed(Sentences)
-        # for i, sentence in enumerate(Sentences):
-        #     for j, token in enumerate(sentence):
-        #         results[i, j, 4, :] = token.embedding[0:1024]
-        #         results[i, j, 5, :] = token.embedding[1024:2048]
-        #         results[i, j, 6, :] = token.embedding[2048:3072]
+                results[i, j, 0, :1024] = token.embedding[0:1024]
+                results[i, j, 1, :1024] = token.embedding[1024:2048]
+                results[i, j, 2, :1024] = token.embedding[2048:3072]
+                results[i, j, 3, 1024:2048] = token.embedding[3072:4096]
+                results[i, j, 4, 1024:2048] = token.embedding[4096:5120]
+                results[i, j, 5, 1024:2048] = token.embedding[5120:6144]
+                results[i, j, 6, 1024:2048] = token.embedding[6144:7168]
             
         return results
