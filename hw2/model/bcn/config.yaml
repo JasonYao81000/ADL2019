@@ -1,4 +1,4 @@
-random_seed: 19
+random_seed: 9487
 device:
   type: cuda
   ordinal: 0
@@ -6,7 +6,7 @@ dataset_dir: './dataset/classification'
 data_loader:
   max_sent_len: 64
   max_word_len: 16
-  batch_size: 25
+  batch_size: 20
   n_workers: 0
 net:
   char_conv_kernel_size: 3
@@ -15,8 +15,8 @@ net:
 use_elmo: true
 elmo_embedder:
   # Set the value of ``ELMo.embedder`` init parameters here.
-  n_ctx_embs: 7  # The number of the contextualized embedding, required.
-  ctx_emb_dim: 2048  # The dimension of the contextualized embedding, required.
+  n_ctx_embs: 9  # The number of the contextualized embedding, required.
+  ctx_emb_dim: 4096  # The dimension of the contextualized embedding, required.
 optim:
   algo: 'Adam'
   kwargs:

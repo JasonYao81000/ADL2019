@@ -2,7 +2,7 @@ import numpy as np
 # from .elmo import Embedder as ELMoEmbedder
 from flair.data import Sentence
 # from flair.embeddings import WordEmbeddings
-# from flair.embeddings import FlairEmbeddings
+from flair.embeddings import FlairEmbeddings
 from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import BertEmbeddings
 from flair.embeddings import StackedEmbeddings
@@ -28,8 +28,8 @@ class Embedder:
         # create a StackedEmbedding object that combines glove and forward/backward flair embeddings
         self.stacked_embeddings = StackedEmbeddings([
             # WordEmbeddings('glove'),              # 100
-            # FlairEmbeddings('news-forward'),      # 2048
-            # FlairEmbeddings('news-backward'),     # 2048
+            FlairEmbeddings('news-forward'),        # 2048
+            FlairEmbeddings('news-backward'),       # 2048
             ELMoEmbeddings('original'),             # 3072
             BertEmbeddings('bert-large-uncased'),   # 4096
         ])
@@ -67,12 +67,14 @@ class Embedder:
         self.stacked_embeddings.embed(Sentences)
         for i, sentence in enumerate(Sentences):
             for j, token in enumerate(sentence):
-                results[i, j, 0, :1024] = token.embedding[0:1024]
-                results[i, j, 1, :1024] = token.embedding[1024:2048]
-                results[i, j, 2, :1024] = token.embedding[2048:3072]
-                results[i, j, 3, 1024:2048] = token.embedding[3072:4096]
-                results[i, j, 4, 1024:2048] = token.embedding[4096:5120]
-                results[i, j, 5, 1024:2048] = token.embedding[5120:6144]
-                results[i, j, 6, 1024:2048] = token.embedding[6144:7168]
+                results[i, j, 0, :2048] = token.embedding[0:2048]
+                results[i, j, 1, :2048] = token.embedding[2048:4096]
+                results[i, j, 2, 2048:3072] = token.embedding[4096:5120]
+                results[i, j, 3, 2048:3072] = token.embedding[5120:6144]
+                results[i, j, 4, 2048:3072] = token.embedding[6144:7168]
+                results[i, j, 5, 3072:4096] = token.embedding[7168:8192]
+                results[i, j, 6, 3072:4096] = token.embedding[8192:9216]
+                results[i, j, 7, 3072:4096] = token.embedding[9216:10240]
+                results[i, j, 8, 3072:4096] = token.embedding[10240:11264]
             
         return results
