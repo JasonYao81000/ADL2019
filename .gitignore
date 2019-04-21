@@ -124,3 +124,5 @@ hw2/model/*/ckpts/*
 hw2/model/*/predictions/*
 hw2/model/*/log.csv
 hw2/ELMo/output/*
+hw2/ensemble/csv/*/*
+hw2/ensemble/*.csv
