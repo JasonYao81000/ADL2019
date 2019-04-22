@@ -39,6 +39,11 @@ class Embedder:
             self.stacked_embeddings = StackedEmbeddings([
                 BertEmbeddings('bert-large-cased'),     # 4096
             ])
+        elif self.n_ctx_embs == 7 and self.ctx_emb_dim == 2048:
+            self.stacked_embeddings = StackedEmbeddings([
+                BertEmbeddings('bert-large-cased'),     # 4096
+                ELMoEmbeddings('original'),             # 3072
+            ])
 
     def __call__(self, sentences, max_sent_len):
         """
@@ -88,5 +93,15 @@ class Embedder:
                     results[i, j, 1, :] = token.embedding[1024:2048]
                     results[i, j, 2, :] = token.embedding[2048:3072]
                     results[i, j, 3, :] = token.embedding[3072:4096]
+        elif self.n_ctx_embs == 7 and self.ctx_emb_dim == 2048:
+            for i, sentence in enumerate(Sentences):
+                for j, token in enumerate(sentence):
+                    results[i, j, 0, :1024] = token.embedding[0:1024]
+                    results[i, j, 1, :1024] = token.embedding[1024:2048]
+                    results[i, j, 2, :1024] = token.embedding[2048:3072]
+                    results[i, j, 3, :1024] = token.embedding[3072:4096]
+                    results[i, j, 4, 1024:2048] = token.embedding[4096:5120]
+                    results[i, j, 5, 1024:2048] = token.embedding[5120:6144]
+                    results[i, j, 6, 1024:2048] = token.embedding[6144:7168]
             
         return results
