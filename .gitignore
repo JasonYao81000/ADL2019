@@ -122,3 +122,8 @@ hw2/data/language_model/*
 hw2/dataset/classification/*
 hw2/model/*
 hw2/ELMo/output/*
+hw2/ELMo/corpus_tokenized/char.dic
+hw2/ELMo/corpus_tokenized/encoder.pkl
+hw2/ELMo/corpus_tokenized/token_embedder.pkl
+hw2/ELMo/corpus_tokenized/train.pkl
+hw2/ELMo/corpus_tokenized/word.dic

@@ -209,11 +209,12 @@ class Model(nn.Module):
     super(Model, self).__init__() 
     self.use_cuda = use_cuda
     self.config = config
+    self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if config['token_embedder']['name'].lower() == 'cnn':
-      self.token_embedder = ConvTokenEmbedder(config, word_emb_layer, char_emb_layer, use_cuda)
+      self.token_embedder = ConvTokenEmbedder(config, word_emb_layer, char_emb_layer)
     elif config['token_embedder']['name'].lower() == 'lstm':
-      self.token_embedder = LstmTokenEmbedder(config, word_emb_layer, char_emb_layer, use_cuda)
+      self.token_embedder = LstmTokenEmbedder(config, word_emb_layer, char_emb_layer)
 
     if config['encoder']['name'].lower() == 'elmo':
       self.encoder = ElmobiLm(config, use_cuda)
@@ -249,7 +250,7 @@ class Model(nn.Module):
 
     encoder_name = self.config['encoder']['name'].lower()
     if encoder_name == 'elmo':
-      mask = Variable(mask_package[0].cuda()).cuda() if self.use_cuda else Variable(mask_package[0])
+      mask = mask_package[0].to(self.device)
       encoder_output = self.encoder(token_embedding, mask)
       encoder_output = encoder_output[1]
       # [batch_size, len, hidden_size]
@@ -261,12 +262,10 @@ class Model(nn.Module):
     encoder_output = F.dropout(encoder_output, self.config['dropout'], self.training)
     forward, backward = encoder_output.split(self.output_dim, 2)
 
-    word_inp = Variable(word_inp)
-    if self.use_cuda:
-      word_inp = word_inp.cuda()
+    word_inp = word_inp.to(self.device)
 
-    mask1 = Variable(mask_package[1].cuda()).cuda() if self.use_cuda else Variable(mask_package[1])
-    mask2 = Variable(mask_package[2].cuda()).cuda() if self.use_cuda else Variable(mask_package[2])
+    mask1 = mask_package[1].to(self.device)
+    mask2 = mask_package[2].to(self.device)
 
     forward_x = forward.contiguous().view(-1, self.output_dim).index_select(0, mask1)
     forward_y = word_inp.contiguous().view(-1).index_select(0, mask2)
@@ -298,7 +297,7 @@ def eval_model(model, valid):
   with torch.no_grad():
     for w, c, lens, masks in zip(valid_w, valid_c, valid_lens, valid_masks):
       loss_forward, loss_backward = model.forward(w, c, masks)
-      total_loss += loss_forward.data
+      total_loss += loss_forward.item()
       n_tags = sum(lens)
       total_tag += n_tags
   model.train()
@@ -344,7 +343,7 @@ def train_model(epoch, opt, model, optimizer,
     loss_forward, loss_backward = model.forward(w, c, masks)
 
     loss = (loss_forward + loss_backward) / 2.0
-    total_loss += loss_forward.data
+    total_loss += loss_forward.item()
     n_tags = sum(lens)
     total_tag += n_tags
     loss.backward()
@@ -593,7 +592,8 @@ def train():
   logging.info('vocab size: {0}'.format(len(label_to_ix)))
   
   nclasses = len(label_to_ix)
-
+  print(word_emb_layer)
+  print(char_emb_layer)
   model = Model(config, word_emb_layer, char_emb_layer, nclasses, use_cuda)
   logging.info(str(model))
   if use_cuda:
@@ -629,7 +629,8 @@ def train():
   best_train = 1e+8
   best_valid = 1e+8
   test_result = 1e+8
-
+  print(model)
+  print(train)
   for epoch in range(opt.max_epoch):
     best_train, best_valid, test_result = train_model(epoch, opt, model, optimizer,
                                                       train, valid, test, best_train, best_valid, test_result)
