@@ -37,11 +37,13 @@ class Embedder:
             ])
         elif self.n_ctx_embs == 4 and self.ctx_emb_dim == 1024:
             self.stacked_embeddings = StackedEmbeddings([
-                BertEmbeddings('bert-large-cased'),     # 4096
+                # BertEmbeddings('bert-large-cased'),     # 4096
+                BertEmbeddings('bert-large-uncased'),     # 4096
             ])
         elif self.n_ctx_embs == 7 and self.ctx_emb_dim == 2048:
             self.stacked_embeddings = StackedEmbeddings([
-                BertEmbeddings('bert-large-cased'),     # 4096
+                # BertEmbeddings('bert-large-cased'),     # 4096
+                BertEmbeddings('bert-large-uncased'),     # 4096
                 ELMoEmbeddings('original'),             # 3072
             ])
 
