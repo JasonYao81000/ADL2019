@@ -38,12 +38,20 @@ class Embedder:
         elif self.n_ctx_embs == 4 and self.ctx_emb_dim == 1024:
             self.stacked_embeddings = StackedEmbeddings([
                 # BertEmbeddings('bert-large-cased'),     # 4096
-                BertEmbeddings('bert-large-uncased'),     # 4096
+                BertEmbeddings('bert-large-uncased'),   # 4096
             ])
         elif self.n_ctx_embs == 7 and self.ctx_emb_dim == 2048:
             self.stacked_embeddings = StackedEmbeddings([
                 # BertEmbeddings('bert-large-cased'),     # 4096
-                BertEmbeddings('bert-large-uncased'),     # 4096
+                BertEmbeddings('bert-large-uncased'),   # 4096
+                ELMoEmbeddings('original'),             # 3072
+            ])
+        elif self.n_ctx_embs == 9 and self.ctx_emb_dim == 4096:
+            self.stacked_embeddings = StackedEmbeddings([
+                FlairEmbeddings('news-forward'),        # 2048
+                FlairEmbeddings('news-backward'),       # 2048
+                BertEmbeddings('bert-large-cased'),     # 4096
+                # BertEmbeddings('bert-large-uncased'),   # 4096
                 ELMoEmbeddings('original'),             # 3072
             ])
 
@@ -105,5 +113,17 @@ class Embedder:
                     results[i, j, 4, 1024:2048] = token.embedding[4096:5120]
                     results[i, j, 5, 1024:2048] = token.embedding[5120:6144]
                     results[i, j, 6, 1024:2048] = token.embedding[6144:7168]
+        elif self.n_ctx_embs == 9 and self.ctx_emb_dim == 4096:
+            for i, sentence in enumerate(Sentences):
+                for j, token in enumerate(sentence):
+                    results[i, j, 0, :2048] = token.embedding[0:2048]
+                    results[i, j, 1, :2048] = token.embedding[2048:4096]
+                    results[i, j, 2, 2048:3072] = token.embedding[4096:5120]
+                    results[i, j, 3, 2048:3072] = token.embedding[5120:6144]
+                    results[i, j, 4, 2048:3072] = token.embedding[6144:7168]
+                    results[i, j, 5, 2048:3072] = token.embedding[7168:8192]
+                    results[i, j, 6, 3072:4096] = token.embedding[8192:9216]
+                    results[i, j, 7, 3072:4096] = token.embedding[9216:10240]
+                    results[i, j, 8, 3072:4096] = token.embedding[10240:11264]
             
         return results
