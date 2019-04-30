@@ -38,7 +38,7 @@ python3.6 -m pip install flair
 
 ### 1. Train your own ELMo
 The codes for training ELMo is base on this [repo](https://github.com/HIT-SCIR/ELMoForManyLangs).
-```python
+```shell
 python -m ELMo.biLM train \
     --seed 9487 \
     --gpu 0 \
@@ -59,13 +59,13 @@ python -m ELMo.biLM train \
 ### 2. Train BCN based on ELMo for classification task
 1. Modify the `MY_ELMo` in `/hw2/ELMo/embedder.py` to `True`.
 2. Train BCN based on ELMo for classification task 
-```python
+```shell
 python -m BCN.train model/bcn_my_elmo
 ```
 
 ### 3. Make prediction for BCN based on ELMo
 Based on the development set performance, you can choose which epoch's model checkpoint to use to generate prediction.Optionally, you can specify the batch size.
-```python
+```shell
 python -m BCN.predict model/bcn_my_elmo 7 --batch_size 512
 ```
 You will then have a prediction as a csv file that can be uploaded to kaggle under `model/bcn_my_elmo/predictions/`.
@@ -85,7 +85,7 @@ We have beat the simple baseline with `0.49049` on the private and `0.49954` on 
     * `BertEmbeddings('bert-large-uncased')`
 
 ### 2. Train BCN based on Contextualized Embeddings for classification task
-```python
+```shell
 python -m BCN.train model/bcn_bert
 python -m BCN.train model/bcn_bert_elmo
 python -m BCN.train model/bcn_bert_elmo_un
@@ -96,49 +96,49 @@ python -m BCN.train model/bcn_flair_bert_elmo_un
 ```
 
 ### 3. Predict on the top 5 best Eval. accuracy for each model
-```python
+```shell
 python -m BCN.predict model/bcn_bert 2 --batch_size 8
 python -m BCN.predict model/bcn_bert 3 --batch_size 8
 python -m BCN.predict model/bcn_bert 5 --batch_size 8
 python -m BCN.predict model/bcn_bert 7 --batch_size 8
 python -m BCN.predict model/bcn_bert 16 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_bert_elmo 1 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo 4 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo 5 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo 6 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo 9 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_bert_elmo_un 7 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo_un 8 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo_un 10 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo_un 11 --batch_size 8
 python -m BCN.predict model/bcn_bert_elmo_un 12 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_bert_un 7 --batch_size 8
 python -m BCN.predict model/bcn_bert_un 8 --batch_size 8
 python -m BCN.predict model/bcn_bert_un 10 --batch_size 8
 python -m BCN.predict model/bcn_bert_un 11 --batch_size 8
 python -m BCN.predict model/bcn_bert_un 12 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_elmo 3 --batch_size 8
 python -m BCN.predict model/bcn_elmo 5 --batch_size 8
 python -m BCN.predict model/bcn_elmo 12 --batch_size 8
 python -m BCN.predict model/bcn_elmo 14 --batch_size 8
 python -m BCN.predict model/bcn_elmo 16 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_flair_bert_elmo 2 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo 5 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo 6 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo 9 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo 16 --batch_size 8
 ```
-```python
+```shell
 python -m BCN.predict model/bcn_flair_bert_elmo_un 6 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo_un 9 --batch_size 8
 python -m BCN.predict model/bcn_flair_bert_elmo_un 10 --batch_size 8
