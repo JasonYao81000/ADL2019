@@ -56,7 +56,7 @@ python -m ELMo.biLM train \
     --min_count 3
 ```
 
-### 2. Train BCN based on ELMo for classification task
+### 2. Train BCN based on ELMo for the classification task
 1. Modify the `MY_ELMo` in `/hw2/ELMo/embedder.py` to `True`.
 2. Train BCN based on ELMo for classification task 
 ```shell
@@ -84,7 +84,9 @@ We have beat the simple baseline with `0.49049` on the private and `0.49954` on 
     * `BertEmbeddings('bert-large-cased')`
     * `BertEmbeddings('bert-large-uncased')`
 
-### 2. Train BCN based on Contextualized Embeddings for classification task
+### 2. Train BCN based on Contextualized Embeddings for the classification task
+1. Modify the `MY_ELMo` in `/hw2/ELMo/embedder.py` to `True`.
+2. Train BCN based on different stacked contextualized embeddings for the classification task.
 ```shell
 python -m BCN.train model/bcn_bert
 python -m BCN.train model/bcn_bert_elmo
