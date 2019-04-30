@@ -1,0 +1,2 @@
+allennlp==0.8.3
+flair==0.4.1

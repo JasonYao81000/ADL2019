@@ -1,0 +1,10 @@
+data_dir: './code/data/classification'
+vocab:
+  word:
+    size: 50000
+    special_tokens: ['pad', 'unk']
+    embedding_path: './code/data/GloVe/glove.840B.300d.txt'
+    freeze_embedding: true
+  char:
+    special_tokens: ['pad', 'unk']
+    embedding_dimension: 32
