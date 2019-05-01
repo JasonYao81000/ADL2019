@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 
 from agent_dir.agent import Agent
 from environment import Environment
@@ -15,7 +16,7 @@ class PolicyNet(nn.Module):
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        action_prob = F.softmax(x, dim=1)
+        action_prob = F.softmax(x, dim=-1)
         return action_prob
 
 class AgentPG(Agent):
@@ -38,7 +39,7 @@ class AgentPG(Agent):
         
         # saved rewards and actions
         self.rewards, self.saved_actions = [], []
-    
+        self.saved_log_probs = []
     
     def save(self, save_path):
         print('save model to', save_path)
@@ -50,21 +51,36 @@ class AgentPG(Agent):
 
     def init_game_setting(self):
         self.rewards, self.saved_actions = [], []
+        self.saved_log_probs = []
 
     def make_action(self, state, test=False):
-        # TODO:
-        # Use your model to output distribution over actions and sample from it.
-        # HINT: google torch.distributions.Categorical
-        return action
+        state = torch.from_numpy(state).float()
+        action_prob = self.model.forward(Variable(state, requires_grad=True))
+        m = torch.distributions.Categorical(action_prob)
+        action = m.sample()
+        self.saved_log_probs.append(m.log_prob(action))
+        return action.data.numpy().astype(int)
 
     def update(self):
-        # TODO:
         # discount your saved reward
+        R = 0
+        rewards = []
+        # Discount future rewards back to the present using gamma
+        for r in self.rewards[::-1]:
+            R = r + self.gamma * R
+            rewards.insert(0, R)
         
-        # TODO:
+        # turn rewards to pytorch tensor and standardize
+        rewards = torch.Tensor(rewards)
+        rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
+        
         # compute loss
-
-        loss.backward()
+        self.optimizer.zero_grad()
+        for log_prob, reward in zip(self.saved_log_probs, rewards):
+            loss = -log_prob * reward
+            loss.backward()
+        
+        # Update network weights
         self.optimizer.step()
 
     def train(self):
@@ -92,5 +108,7 @@ class AgentPG(Agent):
                        (epoch, self.num_episodes, avg_reward))
             
             if avg_reward > 50: # to pass baseline, avg. reward > 50 is enough.
+                print('Epochs: %d/%d | Avg reward: %f '%
+                       (epoch, self.num_episodes, avg_reward))
                 self.save('pg.cpt')
                 break
