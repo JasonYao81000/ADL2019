@@ -103,6 +103,10 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# VS Code
+.vscode/*
+*/.vscode/*
+
 # hw1
 hw1/data/*.json
 hw1/data/*.vec
