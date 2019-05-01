@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.nn as nn
+from collections import deque
 
 from agent_dir.agent import Agent
 from environment import Environment
@@ -42,7 +43,13 @@ class AgentDQN(Agent):
         self.num_actions = self.env.action_space.n
         # TODO:
         # Initialize your replay buffer
-
+        self.dqn_double = False
+        self.dqn_duel = False
+        self.memory = deque(maxlen=10000)  
+        self.epsilon = 1.0  
+        self.epsilon_min = 0.05
+        self.epsilon_step = 100000
+        self.epsilon_decay = (self.epsilon - self.epsilon_min) / self.epsilon_step
         # build target, online network
         self.target_net = DQN(self.input_channels, self.num_actions)
         self.target_net = self.target_net.cuda() if use_cuda else self.target_net
@@ -87,36 +94,76 @@ class AgentDQN(Agent):
     def init_game_setting(self):
         # we don't need init_game_setting in DQN
         pass
+        self.t = 0
     
     def make_action(self, state, test=False):
         # TODO:
         # At first, you decide whether you want to explore the environemnt
-
+        if self.epsilon > self.epsilon_min:
+            self.epsilon -= self.epsilon_decay
         # TODO:
         # if explore, you randomly samples one action
         # else, use your model to predict action
+        if test:
+            act_values = self.sess.run(self.online_net, {self.state:np.expand_dims(state, axis=0)})
+            if self.t > 2500:
+                return np.random.choice(self.num_actions, 1, p=act_values)[0]
+            action = np.argmax(act_values[0])
+        else:
+            if np.random.rand() <= self.epsilon:
+                return random.randrange(self.num_actions)
+            act_values = self.sess.run(self.online_net, {self.state:np.expand_dims(state, axis=0)})
+            action = np.argmax(act_values[0])
+
+        self.t += 1
 
         return action
 
     def update(self):
         # TODO:
         # To update model, we sample some stored experiences as training examples.
-
+        minibatch = random.sample(self.memory, self.batch_size)
+        states = []
+        actions = []
+        rewards = []
+        next_states = []
+        dones = []
         # TODO:
         # Compute Q(s_t, a) with your model.
+        for state, action, reward, next_state, done in minibatch:
+            states.append(state)
+            actions.append(action)
+            rewards.append(reward)
+            next_states.append(next_state)
+            dones.append(done)
+            
+        states = np.array(states)
+        actions = np.array(actions)
+        rewards = np.array(rewards)
+        next_states = np.array(next_states)
+        dones = np.array(dones)
 
         with torch.no_grad():
             # TODO:
             # Compute Q(s_{t+1}, a) for all next states.
             # Since we do not want to backprop through the expected action values,
             # use torch.no_grad() to stop the gradient from Q(s_{t+1}, a)
+            targets = self.sess.run(self.online_net, {self.state:states})
+            next_actions = self.sess.run(self.online_net, {self.state:next_states})
+            target_actions = self.sess.run(self.target_net, {self.state:next_states})
 
         # TODO:
         # Compute the expected Q values: rewards + gamma * max(Q(s_{t+1}, a))
         # You should carefully deal with gamma * max(Q(s_{t+1}, a)) when it is the terminal state.
+        if not self.dqn_double:
+            targets[range(self.batch_size),actions] = rewards + (1 - dones) * self.GAMMA * np.max(target_actions, axis=1)
+        else:
+            targets[range(self.batch_size),actions] = rewards + (1 - dones) * self.GAMMA * target_actions[range(self.batch_size), np.argmax(next_actions, axis=1)]
 
         # TODO:
         # Compute temporal difference loss
+        _, loss = self.sess.run([self.train_op, self.loss], 
+            feed_dict={self.state: states, self.target: targets})
 
         self.optimizer.zero_grad()
         loss.backward()
@@ -137,7 +184,7 @@ class AgentDQN(Agent):
             done = False
             while(not done):
                 # select and perform action
-                action = self.make_action(state)
+                action = self.make_action(state, True)
                 next_state, reward, done, _ = self.env.step(action[0, 0].data.item())
                 total_reward += reward
 
@@ -149,7 +196,7 @@ class AgentDQN(Agent):
 
                 # TODO:
                 # store the transition in memory
-
+                self.memory.append((state, action, reward, next_state, done))
                 # move to the next state
                 state = next_state
 
