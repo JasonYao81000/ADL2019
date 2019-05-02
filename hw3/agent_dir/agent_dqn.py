@@ -5,12 +5,39 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.nn as nn
-from collections import deque
-
+from collections import namedtuple, deque
 from agent_dir.agent import Agent
 from environment import Environment
+random.seed(9487)
+np.random.seed(9487)
+torch.cuda.manual_seed_all(9487)
 
 use_cuda = torch.cuda.is_available()
+
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'next_state', 'reward'))
+
+
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+
+    def push(self, *args):
+        """Saves a transition."""
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = Transition(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+    
 
 class DQN(nn.Module):
     '''
@@ -43,13 +70,8 @@ class AgentDQN(Agent):
         self.num_actions = self.env.action_space.n
         # TODO:
         # Initialize your replay buffer
-        self.dqn_double = False
-        self.dqn_duel = False
-        self.memory = deque(maxlen=10000)  
-        self.epsilon = 1.0  
-        self.epsilon_min = 0.05
-        self.epsilon_step = 100000
-        self.epsilon_decay = (self.epsilon - self.epsilon_min) / self.epsilon_step
+        self.memory = ReplayMemory(100)
+
         # build target, online network
         self.target_net = DQN(self.input_channels, self.num_actions)
         self.target_net = self.target_net.cuda() if use_cuda else self.target_net
@@ -60,11 +82,14 @@ class AgentDQN(Agent):
             self.load('dqn')
         
         # discounted reward
-        self.GAMMA = 0.99 
-        
+        self.GAMMA = 0.99  
+        self.EPS_START = 0.9
+        self.EPS_END = 0.05
+        self.EPS_DECAY = 200
+
         # training hyperparameters
         self.train_freq = 4 # frequency to train the online network
-        self.learning_start = 10000 # before we start to update our network, we wait a few steps first to fill the replay.
+        self.learning_start = 100 # before we start to update our network, we wait a few steps first to fill the replay.
         self.batch_size = 32
         self.num_timesteps = 3000000 # total training steps
         self.display_freq = 10 # frequency to display training progress
@@ -94,79 +119,70 @@ class AgentDQN(Agent):
     def init_game_setting(self):
         # we don't need init_game_setting in DQN
         pass
-        self.t = 0
-    
+   
     def make_action(self, state, test=False):
         # TODO:
         # At first, you decide whether you want to explore the environemnt
-        if self.epsilon > self.epsilon_min:
-            self.epsilon -= self.epsilon_decay
         # TODO:
         # if explore, you randomly samples one action
         # else, use your model to predict action
-        if test:
-            act_values = self.sess.run(self.online_net, {self.state:np.expand_dims(state, axis=0)})
-            if self.t > 2500:
-                return np.random.choice(self.num_actions, 1, p=act_values)[0]
-            action = np.argmax(act_values[0])
-        else:
-            if np.random.rand() <= self.epsilon:
-                return random.randrange(self.num_actions)
-            act_values = self.sess.run(self.online_net, {self.state:np.expand_dims(state, axis=0)})
-            action = np.argmax(act_values[0])
+        sample = random.random()
+        eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * \
+            math.exp(-1. * self.steps / self.EPS_DECAY)
 
-        self.t += 1
+        if sample > eps_threshold:
+            with torch.no_grad():
+                # t.max(1) will return largest column value of each row.
+                # second column on max result is index of where max element was
+                # found, so we pick action with the larger expected reward.
+                action = self.online_net(state).max(1)[1].view(1, 1)
+        else:
+            action = torch.tensor([[random.randrange(self.num_actions)]], dtype=torch.long)
+            action.cuda() if use_cuda else action
+        
 
         return action
 
     def update(self):
         # TODO:
         # To update model, we sample some stored experiences as training examples.
-        minibatch = random.sample(self.memory, self.batch_size)
-        states = []
-        actions = []
-        rewards = []
-        next_states = []
-        dones = []
+#        if len(self.memory) < self.batch_size:
+#            return
+        transitions = self.memory.sample(self.batch_size)
+        batch = Transition(*zip(*transitions))
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                          batch.next_state)), dtype=torch.uint8)
+        non_final_mask = non_final_mask.cuda() if use_cuda else non_final_mask
+        non_final_next_states = torch.cat([s for s in batch.next_state
+                                                    if s is not None])
+        state_batch = torch.cat(batch.state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
         # TODO:
         # Compute Q(s_t, a) with your model.
-        for state, action, reward, next_state, done in minibatch:
-            states.append(state)
-            actions.append(action)
-            rewards.append(reward)
-            next_states.append(next_state)
-            dones.append(done)
-            
-        states = np.array(states)
-        actions = np.array(actions)
-        rewards = np.array(rewards)
-        next_states = np.array(next_states)
-        dones = np.array(dones)
-
+        state_action_values = self.online_net(state_batch).gather(1, action_batch)
+        # TODO:
+        # Compute Q(s_{t+1}, a) for all next states.
+        # Since we do not want to backprop through the expected action values,
+        # use torch.no_grad() to stop the gradient from Q(s_{t+1}, a)
         with torch.no_grad():
-            # TODO:
-            # Compute Q(s_{t+1}, a) for all next states.
-            # Since we do not want to backprop through the expected action values,
-            # use torch.no_grad() to stop the gradient from Q(s_{t+1}, a)
-            targets = self.sess.run(self.online_net, {self.state:states})
-            next_actions = self.sess.run(self.online_net, {self.state:next_states})
-            target_actions = self.sess.run(self.target_net, {self.state:next_states})
+            next_state_values = torch.zeros(self.batch_size)
+            next_state_values = next_state_values.cuda() if use_cuda else next_state_values
+            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
 
         # TODO:
         # Compute the expected Q values: rewards + gamma * max(Q(s_{t+1}, a))
         # You should carefully deal with gamma * max(Q(s_{t+1}, a)) when it is the terminal state.
-        if not self.dqn_double:
-            targets[range(self.batch_size),actions] = rewards + (1 - dones) * self.GAMMA * np.max(target_actions, axis=1)
-        else:
-            targets[range(self.batch_size),actions] = rewards + (1 - dones) * self.GAMMA * target_actions[range(self.batch_size), np.argmax(next_actions, axis=1)]
-
+        expected_state_action_values = (next_state_values * self.GAMMA) + reward_batch
+        
         # TODO:
         # Compute temporal difference loss
-        _, loss = self.sess.run([self.train_op, self.loss], 
-            feed_dict={self.state: states, self.target: targets})
-
+        loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+        
         self.optimizer.zero_grad()
         loss.backward()
+        for param in self.online_net.parameters():
+            param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
         return loss.item()
@@ -184,7 +200,7 @@ class AgentDQN(Agent):
             done = False
             while(not done):
                 # select and perform action
-                action = self.make_action(state, True)
+                action = self.make_action(state)
                 next_state, reward, done, _ = self.env.step(action[0, 0].data.item())
                 total_reward += reward
 
@@ -196,7 +212,7 @@ class AgentDQN(Agent):
 
                 # TODO:
                 # store the transition in memory
-                self.memory.append((state, action, reward, next_state, done))
+                self.memory.push(state, action, next_state, torch.tensor([reward]).cuda())
                 # move to the next state
                 state = next_state
 
