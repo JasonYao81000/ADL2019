@@ -1,5 +1,7 @@
 import numpy as np
+np.random.seed(9487)
 import torch
+torch.cuda.manual_seed_all(9487)
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -25,8 +27,10 @@ class AgentPG(Agent):
         self.model = PolicyNet(state_dim = self.env.observation_space.shape[0],
                                action_num= self.env.action_space.n,
                                hidden_dim=64)
+        self.model_name = 'pg'
         if args.test_pg:
-            self.load('pg.cpt')
+            self.load('./checkpoints/' + self.model_name + '.cpt')
+
         # discounted reward
         self.gamma = 0.99 
         
@@ -54,16 +58,19 @@ class AgentPG(Agent):
         self.saved_log_probs = []
 
     def make_action(self, state, test=False):
-        state = torch.from_numpy(state).float()
-        action_prob = self.model.forward(Variable(state, requires_grad=True))
+        # Use your model to output distribution over actions and sample from it.
+        # HINT: google torch.distributions.Categorical
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        action_prob = self.model(state)
         m = torch.distributions.Categorical(action_prob)
         action = m.sample()
         self.saved_log_probs.append(m.log_prob(action))
-        return action.data.numpy().astype(int)
+        return action.item()
 
     def update(self):
         # discount your saved reward
         R = 0
+        policy_loss = []
         rewards = []
         # Discount future rewards back to the present using gamma
         for r in self.rewards[::-1]:
@@ -75,19 +82,22 @@ class AgentPG(Agent):
         rewards = (rewards - rewards.mean()) / (rewards.std() + np.finfo(np.float32).eps)
         
         # compute loss
-        self.optimizer.zero_grad()
         for log_prob, reward in zip(self.saved_log_probs, rewards):
-            loss = -log_prob * reward
-            loss.backward()
+            policy_loss.append(-log_prob * reward)
         
         # Update network weights
+        self.optimizer.zero_grad()
+        policy_loss = torch.cat(policy_loss).sum()
+        policy_loss.backward()
         self.optimizer.step()
 
     def train(self):
         avg_reward = None # moving average of reward
+        episode_rewards = []
         for epoch in range(self.num_episodes):
             state = self.env.reset()
             self.init_game_setting()
+            episode_reward = 0
             done = False
             while(not done):
                 action = self.make_action(state)
@@ -95,10 +105,12 @@ class AgentPG(Agent):
                 
                 self.saved_actions.append(action)
                 self.rewards.append(reward)
+                episode_reward += reward
 
             # for logging 
             last_reward = np.sum(self.rewards)
             avg_reward = last_reward if not avg_reward else avg_reward * 0.9 + last_reward * 0.1
+            episode_rewards.append(episode_reward)
             
             # update model
             self.update()
@@ -106,9 +118,10 @@ class AgentPG(Agent):
             if epoch % self.display_freq == 0:
                 print('Epochs: %d/%d | Avg reward: %f '%
                        (epoch, self.num_episodes, avg_reward))
+                np.save('./results/' + self.model_name + '_episode_rewards.npy', np.array(episode_rewards))
             
             if avg_reward > 50: # to pass baseline, avg. reward > 50 is enough.
                 print('Epochs: %d/%d | Avg reward: %f '%
                        (epoch, self.num_episodes, avg_reward))
-                self.save('pg.cpt')
+                self.save('./checkpoints/' + self.model_name + '.cpt')
                 break
