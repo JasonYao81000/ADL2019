@@ -2,9 +2,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from agent_dir.agent import Agent
 from environment import Environment
+from torch.distributions import Categorical
+torch.manual_seed(9487)
 
 class PolicyNet(nn.Module):
     def __init__(self, state_dim, action_num, hidden_dim):
@@ -21,6 +22,7 @@ class PolicyNet(nn.Module):
 class AgentPG(Agent):
     def __init__(self, env, args):
         self.env = env
+        env.seed(9487)
         self.model = PolicyNet(state_dim = self.env.observation_space.shape[0],
                                action_num= self.env.action_space.n,
                                hidden_dim=64)
@@ -35,9 +37,12 @@ class AgentPG(Agent):
         
         # optimizer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=3e-3)
+        self.eps = np.finfo(np.float32).eps.item()
         
         # saved rewards and actions
-        self.rewards, self.saved_actions = [], []
+        self.rewards = []
+        self.saved_actions = []
+        self.saved_log_probs = []
     
     
     def save(self, save_path):
@@ -49,23 +54,41 @@ class AgentPG(Agent):
         self.model.load_state_dict(torch.load(load_path))
 
     def init_game_setting(self):
-        self.rewards, self.saved_actions = [], []
+        self.rewards = []
+        self.saved_actions = []
+        self.saved_log_probs = []
 
     def make_action(self, state, test=False):
         # TODO:
         # Use your model to output distribution over actions and sample from it.
         # HINT: google torch.distributions.Categorical
-        return action
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        probs = self.model(state)
+        m = Categorical(probs)
+        action = m.sample()
+        self.saved_log_probs.append(m.log_prob(action))
+        return action.item()
 
     def update(self):
         # TODO:
         # discount your saved reward
-        
+        R = 0
+        policy_loss = []
+        returns = []
+        for r in self.rewards[::-1]:
+            R = r + self.gamma * R
+            returns.insert(0, R)
+        returns = torch.tensor(returns)
+        returns = (returns - returns.mean()) / (returns.std() + self.eps)
+        for log_prob, R in zip(self.saved_log_probs, returns):
+            policy_loss.append(-log_prob * R)    
         # TODO:
         # compute loss
-
-        loss.backward()
+        self.optimizer.zero_grad()
+        policy_loss = torch.cat(policy_loss).sum()
+        policy_loss.backward()
         self.optimizer.step()
+
 
     def train(self):
         avg_reward = None # moving average of reward
