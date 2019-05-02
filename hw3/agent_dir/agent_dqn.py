@@ -61,24 +61,70 @@ class DQN(nn.Module):
         q = self.head(x)
         return q
 
+class Dueling_DQN(nn.Module):
+    '''
+    This architecture is the one from OpenAI Baseline, with small modification.
+    '''
+    def __init__(self, channels, num_actions):
+        super(Dueling_DQN, self).__init__()
+        self.num_actions = num_actions
+
+        self.conv1 = nn.Conv2d(channels, 32, kernel_size=8, stride=4)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+
+        self.fc1_adv = nn.Linear(3136, 512)
+        self.fc1_val = nn.Linear(3136, 512)
+
+        self.fc2_adv = nn.Linear(512, num_actions)
+        self.fc2_val = nn.Linear(512, 1)
+        
+        self.relu = nn.ReLU()
+        self.lrelu = nn.LeakyReLU(0.01)
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv3(x))
+        x = x.view(x.size(0), -1)
+
+        adv = self.relu(self.fc1_adv(x))
+        val = self.relu(self.fc1_val(x))
+
+        adv = self.fc2_adv(adv)
+        val = self.fc2_val(val).expand(x.size(0), self.num_actions)
+
+        x = val + adv - adv.mean(1).unsqueeze(1).expand(x.size(0), self.num_actions)
+        return x
+
 class AgentDQN(Agent):
     def __init__(self, env, args):
         self.env = env
         self.input_channels = 4
         self.num_actions = self.env.action_space.n
-
+        self.double_dqn = args.double_dqn
+        self.duel_dqn = args.duel_dqn
+        if self.double_dqn and self.duel_dqn:
+            self.model_name = 'double_duel_dqn'
+        elif self.double_dqn:
+            self.model_name = 'double_dqn'
+        elif self.duel_dqn:
+            self.model_name = 'duel_dqn'
+        else:
+            self.model_name = 'dqn'
+        
         # Initialize your replay buffer
         self.memory_capacity = 10000
         self.memory = ReplayMemory(self.memory_capacity)
 
         # build target, online network
-        self.target_net = DQN(self.input_channels, self.num_actions)
+        self.target_net = Dueling_DQN(self.input_channels, self.num_actions) if self.duel_dqn else DQN(self.input_channels, self.num_actions)
         self.target_net = self.target_net.cuda() if use_cuda else self.target_net
-        self.online_net = DQN(self.input_channels, self.num_actions)
+        self.online_net = Dueling_DQN(self.input_channels, self.num_actions) if self.duel_dqn else DQN(self.input_channels, self.num_actions)
         self.online_net = self.online_net.cuda() if use_cuda else self.online_net
 
         if args.test_dqn:
-            self.load('dqn')
+            self.load('./checkpoints/' + self.model_name)
         
         # discounted reward
         self.GAMMA = 0.99
@@ -98,7 +144,7 @@ class AgentDQN(Agent):
         self.steps = 0 # num. of passed steps. this may be useful in controlling exploration
         self.EPS_START = 0.9
         self.EPS_END = 0.05
-        self.EPS_DECAY = 1000000
+        self.EPS_DECAY = 300000
 
     def save(self, save_path):
         print('save model to', save_path)
@@ -169,7 +215,8 @@ class AgentDQN(Agent):
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken. These are the actions which would've been taken
         # for each batch state according to self.online_net
-        state_action_values = self.online_net(state_batch).gather(1, action_batch)
+        state_action_values_ = self.online_net(state_batch)
+        state_action_values = state_action_values_.gather(1, action_batch)
 
         with torch.no_grad():
             # Compute Q(s_{t+1}, a) for all next states.
@@ -180,7 +227,12 @@ class AgentDQN(Agent):
             # This is merged based on the mask, such that we'll have either the expected
             # state value or 0 in case the state was final.
             next_state_values = torch.zeros(self.batch_size).cuda()
-            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
+            if self.double_dqn:
+                batch_index = torch.arange(self.batch_size, dtype=torch.long)[non_final_mask]
+                selected_actions = torch.argmax(state_action_values_, dim=1)[non_final_mask]
+                next_state_values[non_final_mask] = self.target_net(non_final_next_states)[batch_index, selected_actions].detach()
+            else:
+                next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
             
         # Compute the expected Q values: rewards + gamma * max(Q(s_{t+1}, a))
         # You should carefully deal with gamma * max(Q(s_{t+1}, a)) when it is the terminal state.
@@ -200,6 +252,7 @@ class AgentDQN(Agent):
     def train(self):
         episodes_done_num = 0 # passed episodes
         total_reward = 0 # compute average reward
+        episode_rewards = []
         loss = 0 
         while(True):
             state = self.env.reset()
@@ -207,12 +260,14 @@ class AgentDQN(Agent):
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
             state = state.cuda() if use_cuda else state
             
+            episode_reward = 0
             done = False
             while(not done):
                 # select and perform action
                 action = self.make_action(state)
                 next_state, reward, done, _ = self.env.step(action[0, 0].data.item())
                 total_reward += reward
+                episode_reward += reward
 
                 # process new state
                 next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
@@ -236,16 +291,21 @@ class AgentDQN(Agent):
 
                 # save the model
                 if self.steps % self.save_freq == 0:
-                    self.save('dqn')
+                    self.save('./checkpoints/' + self.model_name)
 
                 self.steps += 1
+
+            episode_rewards.append(episode_reward)
 
             if episodes_done_num % self.display_freq == 0:
                 print('Episode: %d | Steps: %d/%d | Avg reward: %f | loss: %f '%
                         (episodes_done_num, self.steps, self.num_timesteps, total_reward / self.display_freq, loss))
+
+                np.save('./results/' + self.model_name + '_episode_rewards.npy', np.array(episode_rewards))
+
                 total_reward = 0
 
             episodes_done_num += 1
             if self.steps > self.num_timesteps:
                 break
-        self.save('dqn')
+        self.save('./checkpoints/' + self.model_name)
