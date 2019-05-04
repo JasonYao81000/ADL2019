@@ -78,26 +78,25 @@ class AgentMario:
         # Compute actor critic loss (value_loss, action_loss)
         # OPTIONAL: You can also maxmize entropy to encourage exploration
         # loss = value_loss + action_loss (- entropy_weight * entropy)
-        value_loss = []
-        action_loss = []
-        entropys = []
-        for step in range(self.rollouts.n_steps):
-            obs = self.rollouts.obs[step]
-            hiddens = self.rollouts.hiddens[step]
-            masks = self.rollouts.masks[step]
-            actions = self.rollouts.actions[step]
-            values, action_probs, hiddens = self.model(obs, hiddens, masks)
-            m = torch.distributions.Categorical(action_probs)
-            log_probs = m.log_prob(actions)
-            entropy = m.entropy().mean()
-            advantages = discounted_rewards[step] - values
-            value_loss.append(advantages.pow(2).mean())
-            action_loss.append(-(advantages.detach() * log_probs).mean())
-            entropys.append(entropy)
-        value_loss = torch.cat(value_loss).sum()
-        action_loss = torch.cat(action_loss).sum()
-        entropys = torch.cat(entropys).sum()
-        loss = value_loss + action_loss - self.entropy_weight * entropys
+        obs_shape = self.rollouts.obs.size()[2:]
+        obs = self.rollouts.obs[:-1].view(-1, *obs_shape)
+        hiddens = self.rollouts.hiddens[0].view(-1, self.hidden_size)
+        masks = self.rollouts.masks[:-1].view(-1, 1)
+        actions = self.rollouts.actions.view(-1, 1)
+
+        values, action_probs, hiddens = self.model(obs, hiddens, masks)
+        m = torch.distributions.Categorical(action_probs)
+        log_probs = m.log_prob(actions.squeeze(-1))
+        entropy = m.entropy().mean()
+
+        discounted_rewards = discounted_rewards.view(self.rollouts.n_steps, self.n_processes, 1)
+        values = values.view(self.rollouts.n_steps, self.n_processes, 1)
+        log_probs = log_probs.view(self.rollouts.n_steps, self.n_processes, 1)
+
+        advantages = discounted_rewards - values
+        value_loss = advantages.pow(2).mean()
+        action_loss = -(advantages.detach() * log_probs).mean()
+        loss = value_loss + action_loss - self.entropy_weight * entropy
 
         # Update
         self.optimizer.zero_grad()
