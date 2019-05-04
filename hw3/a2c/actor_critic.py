@@ -28,7 +28,7 @@ class ActorCritic(nn.Module):
         )
 
         if self.recurrent:
-            self.rnn =  nn.GRU(hidden_size, hidden_size)
+            self.rnn = nn.GRU(hidden_size, hidden_size)
         
         self.actor = nn.Linear(hidden_size, act_shape)
         self.critic = nn.Linear(hidden_size, 1)
@@ -69,10 +69,23 @@ class ActorCritic(nn.Module):
         '''
         # TODO
         # step 1: Unflatten the tensors to (n_steps, n_processes, -1) 
+        n_processes = hiddens.size(0)
+        n_steps = int(x.size(0) / n_processes)
+        x = x.view(n_steps, n_processes, x.size(1))
+        masks = masks.view(n_steps, n_processes, masks.size(1))
+        
         # step 2: Run a for loop through time to forward rnn
-        # step 3: Flatten the outputs
         # HINT: You must set hidden states to zeros when masks == 0 in the loop 
-       
+        outputs = []
+        for i in range(n_steps):
+            output, hiddens = self.rnn(x[i, :, :].unsqueeze(0), (hiddens * masks[i, :, :]).unsqueeze(0))
+            hiddens = hiddens.squeeze(0)
+            outputs.append(output.squeeze(0))
+        
+        # step 3: Flatten the outputs
+        x = torch.cat(outputs, dim=0)
+        x = x.view(n_steps * n_processes, -1)
+        
         return x, hiddens
 
     def forward(self, inputs, hiddens, masks):

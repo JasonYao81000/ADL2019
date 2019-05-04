@@ -1,4 +1,7 @@
+import numpy as np
+np.random.seed(9487)
 import torch
+torch.cuda.manual_seed_all(9487)
 from torch.distributions import Categorical
 from torch.optim import RMSprop
 from torch.nn.utils import clip_grad_norm_
@@ -33,6 +36,9 @@ class AgentMario:
         self.display_freq = 4000
         self.save_freq = 100000
         self.save_dir = './checkpoints/'
+        self.model_name = 'a2c'
+        if args.test_mario:
+            self.load(self.save_dir + self.model_name + '.cpt')
 
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed_all(self.seed)
@@ -59,11 +65,39 @@ class AgentMario:
     def _update(self):
         # TODO: Compute returns
         # R_t = reward_t + gamma * R_{t+1}
+        R = torch.zeros(self.n_processes, 1).to(self.device)
+        discounted_rewards = []
+        for i in range(self.rollouts.n_steps):
+            step = self.rollouts.step - i - 1
+            reward = self.rollouts.rewards[step]
+            R = reward + self.gamma * R
+            discounted_rewards.insert(0, R)
+        discounted_rewards = torch.cat(discounted_rewards)
 
         # TODO:
         # Compute actor critic loss (value_loss, action_loss)
         # OPTIONAL: You can also maxmize entropy to encourage exploration
         # loss = value_loss + action_loss (- entropy_weight * entropy)
+        value_loss = []
+        action_loss = []
+        entropys = []
+        for step in range(self.rollouts.n_steps):
+            obs = self.rollouts.obs[step]
+            hiddens = self.rollouts.hiddens[step]
+            masks = self.rollouts.masks[step]
+            actions = self.rollouts.actions[step]
+            values, action_probs, hiddens = self.model(obs, hiddens, masks)
+            m = torch.distributions.Categorical(action_probs)
+            log_probs = m.log_prob(actions)
+            entropy = m.entropy().mean()
+            advantages = discounted_rewards[step] - values
+            value_loss.append(advantages.pow(2).mean())
+            action_loss.append(-(advantages.detach() * log_probs).mean())
+            entropys.append(entropy)
+        value_loss = torch.cat(value_loss).sum()
+        action_loss = torch.cat(action_loss).sum()
+        entropys = torch.cat(entropys).sum()
+        loss = value_loss + action_loss - self.entropy_weight * entropys
 
         # Update
         self.optimizer.zero_grad()
@@ -73,15 +107,18 @@ class AgentMario:
         
         # TODO:
         # Clear rollouts after update (RolloutStorage.reset())
+        self.rollouts.reset()
 
         return loss.item()
 
     def _step(self, obs, hiddens, masks):
         with torch.no_grad():
-            pass
             # TODO:
             # Sample actions from the output distributions
             # HINT: you can use torch.distributions.Categorical
+            values, action_probs, hiddens = self.model(obs, hiddens, masks)
+            m = torch.distributions.Categorical(action_probs)
+            actions = m.sample()
 
         obs, rewards, dones, infos = self.envs.step(actions.cpu().numpy())
         
@@ -89,13 +126,20 @@ class AgentMario:
         # Store transitions (obs, hiddens, actions, values, rewards, masks)
         # You need to convert arrays to tensors first
         # HINT: masks = (1 - dones)
-        
+        obs = torch.from_numpy(obs).to(self.device)
+        actions = actions.unsqueeze(-1)
+        rewards = torch.from_numpy(rewards).to(self.device).unsqueeze(-1)
+        dones = torch.from_numpy(np.array(dones).astype(np.float32)).to(self.device)
+        masks = (torch.ones(dones.size()).to(self.device) - dones).unsqueeze(-1)
+        self.rollouts.insert(obs, hiddens, actions, values, rewards, masks)
+
     def train(self):
 
         print('Start training')
         running_reward = deque(maxlen=10)
         episode_rewards = torch.zeros(self.n_processes, 1).to(self.device)
         total_steps = 0
+        avg_rewards = []
         
         # Store first observation
         obs = torch.from_numpy(self.envs.reset()).to(self.device)
@@ -125,13 +169,15 @@ class AgentMario:
                 avg_reward = 0
             else:
                 avg_reward = sum(running_reward) / len(running_reward)
+            avg_rewards.append(avg_reward)
 
             if total_steps % self.display_freq == 0:
                 print('Steps: %d/%d | Avg reward: %f'%
                         (total_steps, self.max_steps, avg_reward))
+                np.save('./results/' + self.model_name + '_avg_rewards.npy', np.array(avg_rewards))
             
             if total_steps % self.save_freq == 0:
-                self.save_model('model.pt')
+                self.save_model(self.model_name + '.cpt')
             
             if total_steps >= self.max_steps:
                 break
