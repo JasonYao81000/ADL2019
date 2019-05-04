@@ -92,6 +92,8 @@ class AgentPG(Agent):
 
     def train(self):
         avg_reward = None # moving average of reward
+        episode_reward = 0
+        save_reward = list()
         for epoch in range(self.num_episodes):
             state = self.env.reset()
             self.init_game_setting()
@@ -99,10 +101,13 @@ class AgentPG(Agent):
             while(not done):
                 action = self.make_action(state)
                 state, reward, done, _ = self.env.step(action)
-                
+                episode_reward += reward
                 self.saved_actions.append(action)
                 self.rewards.append(reward)
-
+                
+            save_reward.append(episode_reward)
+            episode_reward = 0
+            
             # for logging 
             last_reward = np.sum(self.rewards)
             avg_reward = last_reward if not avg_reward else avg_reward * 0.9 + last_reward * 0.1
@@ -117,3 +122,4 @@ class AgentPG(Agent):
             if avg_reward > 50: # to pass baseline, avg. reward > 50 is enough.
                 self.save('pg.cpt')
                 break
+        np.save('PG_RewardCurve', save_reward)

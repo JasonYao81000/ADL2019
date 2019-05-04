@@ -62,24 +62,81 @@ class DQN(nn.Module):
         x = self.lrelu(self.fc(x.view(x.size(0), -1)))
         q = self.head(x)
         return q
+    
+        
+class Dueling_DQN(nn.Module):
+    '''
+    This architecture is the one from OpenAI Baseline, with small modification.
+    '''
+    def __init__(self, channels, num_actions):
+        super(Dueling_DQN, self).__init__()
+        self.num_actions = num_actions
+        self.conv1 = nn.Conv2d(channels, 32, kernel_size=8, stride=4)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+        self.fc = nn.Linear(3136, 512)
+        self.fc_du = nn.Linear(3136, 512)
+        self.head = nn.Linear(512, self.num_actions)
+        self.head_du = nn.Linear(512, 1)
+        
+        self.relu = nn.ReLU()
+        self.lrelu = nn.LeakyReLU(0.01)
+
+
+    def forward(self, x):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv3(x))
+        d1 = self.lrelu(self.fc(x.view(x.size(0), -1)))
+        d2 = self.lrelu(self.fc_du(x.view(x.size(0), -1)))
+        d1 = self.head(d1)
+        d2 = self.head_du(d2).expand(x.size(0), self.num_actions)
+        q = d2 + d1 - d1.mean(1).unsqueeze(1).expand(x.size(0), self.num_actions)
+        return q
+    
 
 class AgentDQN(Agent):
     def __init__(self, env, args):
         self.env = env
         self.input_channels = 4
         self.num_actions = self.env.action_space.n
+        self.double_dqn = args.double_dqn
+        self.duel_dqn = args.duel_dqn
+        if self.double_dqn and self.duel_dqn:
+            self.model_name = 'duel_double_dqn'
+            self.target_net = Dueling_DQN(self.input_channels, self.num_actions)
+            self.target_net = self.target_net.cuda() if use_cuda else self.target_net
+            self.online_net = Dueling_DQN(self.input_channels, self.num_actions)
+            self.online_net = self.online_net.cuda() if use_cuda else self.online_net
+            print('duel double dqn')
+        elif self.double_dqn:
+            self.model_name = 'double_dqn'
+            self.target_net = DQN(self.input_channels, self.num_actions)
+            self.target_net = self.target_net.cuda() if use_cuda else self.target_net
+            self.online_net = DQN(self.input_channels, self.num_actions)
+            self.online_net = self.online_net.cuda() if use_cuda else self.online_net
+            print('dqn')
+        elif self.duel_dqn:
+            self.model_name = 'duel_dqn'
+            self.target_net = Dueling_DQN(self.input_channels, self.num_actions)
+            self.target_net = self.target_net.cuda() if use_cuda else self.target_net
+            self.online_net = Dueling_DQN(self.input_channels, self.num_actions)
+            self.online_net = self.online_net.cuda() if use_cuda else self.online_net
+            print('duel dqn')
+        else:
+            self.model_name = 'dqn'
+            self.target_net = DQN(self.input_channels, self.num_actions)
+            self.target_net = self.target_net.cuda() if use_cuda else self.target_net
+            self.online_net = DQN(self.input_channels, self.num_actions)
+            self.online_net = self.online_net.cuda() if use_cuda else self.online_net
+            print('dqn')
         # TODO:
         # Initialize your replay buffer
         self.memory = ReplayMemory(100)
-
-        # build target, online network
-        self.target_net = DQN(self.input_channels, self.num_actions)
-        self.target_net = self.target_net.cuda() if use_cuda else self.target_net
-        self.online_net = DQN(self.input_channels, self.num_actions)
-        self.online_net = self.online_net.cuda() if use_cuda else self.online_net
+       
 
         if args.test_dqn:
-            self.load('dqn')
+            self.load(self.model_name)
         
         # discounted reward
         self.GAMMA = 0.99  
@@ -126,21 +183,26 @@ class AgentDQN(Agent):
         # TODO:
         # if explore, you randomly samples one action
         # else, use your model to predict action
-        sample = random.random()
-        eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * \
-            math.exp(-1. * self.steps / self.EPS_DECAY)
-
-        if sample > eps_threshold:
-            with torch.no_grad():
-                # t.max(1) will return largest column value of each row.
-                # second column on max result is index of where max element was
-                # found, so we pick action with the larger expected reward.
-                action = self.online_net(state).max(1)[1].view(1, 1)
-        else:
-            action = torch.tensor([[random.randrange(self.num_actions)]], dtype=torch.long)
-            action.cuda() if use_cuda else action
+        if test:
+            state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
+            state = state.cuda() if use_cuda else state
+            action = self.online_net(state).max(1)[1].view(1, 1)
+            action = action[0, 0].data.item()
+        else:  
+            sample = random.random()
+            eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * \
+                math.exp(-1. * self.steps / self.EPS_DECAY)
+    
+            if sample > eps_threshold:
+                with torch.no_grad():
+                    # t.max(1) will return largest column value of each row.
+                    # second column on max result is index of where max element was
+                    # found, so we pick action with the larger expected reward.
+                    action = self.online_net(state).max(1)[1].view(1, 1)
+            else:
+                action = torch.tensor([[random.randrange(self.num_actions)]], dtype=torch.long)
+                action = action.cuda() if use_cuda else action
         
-
         return action
 
     def update(self):
@@ -165,11 +227,18 @@ class AgentDQN(Agent):
         # Compute Q(s_{t+1}, a) for all next states.
         # Since we do not want to backprop through the expected action values,
         # use torch.no_grad() to stop the gradient from Q(s_{t+1}, a)
-        with torch.no_grad():
-            next_state_values = torch.zeros(self.batch_size)
-            next_state_values = next_state_values.cuda() if use_cuda else next_state_values
-            next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
-
+        if self.double_dqn:
+            with torch.no_grad():
+                selected_action_probs = self.online_net(state_batch)
+                selected_actions = selected_action_probs.argmax(-1)                
+                next_state_values = torch.zeros(self.batch_size)
+                next_state_values = next_state_values.cuda() if use_cuda else next_state_values   
+                next_state_values[non_final_mask] = self.target_net(state_batch)[range(self.batch_size), selected_actions][non_final_mask]
+        else:
+            with torch.no_grad():
+                next_state_values = torch.zeros(self.batch_size)
+                next_state_values = next_state_values.cuda() if use_cuda else next_state_values
+                next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         # TODO:
         # Compute the expected Q values: rewards + gamma * max(Q(s_{t+1}, a))
         # You should carefully deal with gamma * max(Q(s_{t+1}, a)) when it is the terminal state.
@@ -191,6 +260,8 @@ class AgentDQN(Agent):
         episodes_done_num = 0 # passed episodes
         total_reward = 0 # compute average reward
         loss = 0 
+        episode_reward = 0
+        save_reward = list()
         while(True):
             state = self.env.reset()
             # State: (80,80,4) --> (1,4,80,80)
@@ -203,6 +274,7 @@ class AgentDQN(Agent):
                 action = self.make_action(state)
                 next_state, reward, done, _ = self.env.step(action[0, 0].data.item())
                 total_reward += reward
+                episode_reward += reward
 
                 # process new state
                 next_state = torch.from_numpy(next_state).permute(2,0,1).unsqueeze(0)
@@ -212,7 +284,7 @@ class AgentDQN(Agent):
 
                 # TODO:
                 # store the transition in memory
-                self.memory.push(state, action, next_state, torch.tensor([reward]).cuda())
+                self.memory.push(state, action, next_state, torch.tensor([reward]).cuda() if use_cuda else torch.tensor([reward]))
                 # move to the next state
                 state = next_state
 
@@ -226,16 +298,20 @@ class AgentDQN(Agent):
 
                 # save the model
                 if self.steps % self.save_freq == 0:
-                    self.save('dqn')
+                    self.save(self.model_name)
 
                 self.steps += 1
+
+            save_reward.append(episode_reward)                
+            episode_reward = 0
 
             if episodes_done_num % self.display_freq == 0:
                 print('Episode: %d | Steps: %d/%d | Avg reward: %f | loss: %f '%
                         (episodes_done_num, self.steps, self.num_timesteps, total_reward / self.display_freq, loss))
                 total_reward = 0
+                np.save(self.model_name + '_save_reward', save_reward)
 
             episodes_done_num += 1
             if self.steps > self.num_timesteps:
                 break
-        self.save('dqn')
+        self.save(self.model_name)
