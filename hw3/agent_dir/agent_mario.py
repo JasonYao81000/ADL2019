@@ -1,5 +1,8 @@
 import numpy as np
 np.random.seed(9487)
+import random
+random.seed(9487)
+import math
 import torch
 torch.cuda.manual_seed_all(9487)
 from torch.distributions import Categorical
@@ -12,6 +15,7 @@ from a2c.actor_critic import ActorCritic
 
 from collections import deque
 import os
+import copy
 
 use_cuda = torch.cuda.is_available()
 
@@ -22,8 +26,8 @@ class AgentMario:
         self.lr = 7e-4
         self.gamma = 0.9
         self.hidden_size = 512
-        self.update_freq = 5
-        self.n_processes = 16
+        self.update_freq = 16
+        self.n_processes = 5
         self.seed = 7122
         self.max_steps = 1e7
         self.grad_norm = 0.5
@@ -52,51 +56,52 @@ class AgentMario:
 
         self.rollouts = RolloutStorage(self.update_freq, self.n_processes,
                 self.obs_shape, self.act_shape, self.hidden_size) 
+        # self.best_rollouts = RolloutStorage(self.update_freq, self.n_processes,
+        #         self.obs_shape, self.act_shape, self.hidden_size) 
         self.model = ActorCritic(self.obs_shape, self.act_shape,
                 self.hidden_size, self.recurrent).to(self.device)
         self.optimizer = RMSprop(self.model.parameters(), lr=self.lr, 
                 eps=1e-5)
-                
+
         if args.test_mario:
             self.load_model(self.save_dir + self.model_name + '.cpt')
 
         self.hidden = None
         self.init_game_setting()
-   
-    def _update(self):
+
+        self.steps = 0 # num. of passed steps. this may be useful in controlling exploration
+        self.EPS_START = 0.9
+        self.EPS_END = 0.05
+        self.EPS_DECAY = self.max_steps / 100
+
+    def _update(self, rollouts, is_best=False):
         # TODO: Compute returns
         # R_t = reward_t + gamma * R_{t+1}
-        R = torch.zeros(self.n_processes, 1).to(self.device)
-        discounted_rewards = []
-        for i in range(self.rollouts.n_steps):
-            step = self.rollouts.step - i - 1
-            reward = self.rollouts.rewards[step]
-            R = reward + self.gamma * R
-            discounted_rewards.insert(0, R)
-        discounted_rewards = torch.cat(discounted_rewards)
+        with torch.no_grad():
+            values, action_probs, hiddens = self.model(rollouts.obs[-1].to(self.device), rollouts.hiddens[-1].to(self.device), rollouts.masks[-1].to(self.device))
+        rollouts.compute_returns(values, self.gamma)
 
         # TODO:
         # Compute actor critic loss (value_loss, action_loss)
         # OPTIONAL: You can also maxmize entropy to encourage exploration
         # loss = value_loss + action_loss (- entropy_weight * entropy)
-        obs_shape = self.rollouts.obs.size()[2:]
-        obs = self.rollouts.obs[:-1].view(-1, *obs_shape)
-        hiddens = self.rollouts.hiddens[0].view(-1, self.hidden_size)
-        masks = self.rollouts.masks[:-1].view(-1, 1)
-        actions = self.rollouts.actions.view(-1, 1)
+        obs_shape = rollouts.obs.size()[2:]
+        obs = rollouts.obs[:-1].view(-1, *obs_shape).to(self.device)
+        hiddens = rollouts.hiddens[0].view(-1, self.hidden_size).to(self.device)
+        masks = rollouts.masks[:-1].view(-1, 1).to(self.device)
+        actions = rollouts.actions.view(-1, 1).to(self.device)
 
         values, action_probs, hiddens = self.model(obs, hiddens, masks)
         m = torch.distributions.Categorical(action_probs)
-        log_probs = m.log_prob(actions.squeeze(-1))
+        action_log_probs = m.log_prob(actions.squeeze(-1))
         entropy = m.entropy().mean()
 
-        discounted_rewards = discounted_rewards.view(self.rollouts.n_steps, self.n_processes, 1)
-        values = values.view(self.rollouts.n_steps, self.n_processes, 1)
-        log_probs = log_probs.view(self.rollouts.n_steps, self.n_processes, 1)
+        values = values.view(rollouts.n_steps, self.n_processes, 1)
+        action_log_probs = action_log_probs.view(rollouts.n_steps, self.n_processes, 1)
 
-        advantages = discounted_rewards - values
+        advantages = rollouts.returns[:-1].to(self.device) - values
         value_loss = advantages.pow(2).mean()
-        action_loss = -(advantages.detach() * log_probs).mean()
+        action_loss = -(advantages.detach() * action_log_probs).mean()
         loss = value_loss + action_loss - self.entropy_weight * entropy
 
         # Update
@@ -107,18 +112,32 @@ class AgentMario:
         
         # TODO:
         # Clear rollouts after update (RolloutStorage.reset())
-        self.rollouts.reset()
+        if is_best == False:
+            rollouts.reset()
 
         return loss.item()
 
     def _step(self, obs, hiddens, masks):
-        with torch.no_grad():
-            # TODO:
-            # Sample actions from the output distributions
-            # HINT: you can use torch.distributions.Categorical
-            values, action_probs, hiddens = self.model(obs, hiddens, masks)
-            m = torch.distributions.Categorical(action_probs)
-            actions = m.sample()
+        # At first, you decide whether you want to explore the environemnt
+        sample = random.random()
+        eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * \
+            math.exp(-1. * self.steps / self.EPS_DECAY)
+
+        # if explore, you randomly samples one action
+        # else, use your model to predict action
+        if sample > eps_threshold:
+            with torch.no_grad():
+                # TODO:
+                # Sample actions from the output distributions
+                # HINT: you can use torch.distributions.Categorical
+                values, action_probs, hiddens = self.model(obs, hiddens, masks)
+                m = torch.distributions.Categorical(action_probs)
+                actions = m.sample()
+        else:
+            with torch.no_grad():
+                values, action_probs, hiddens = self.model(obs, hiddens, masks)
+            actions = torch.tensor([random.randrange(self.act_shape) for _ in range(self.n_processes)], dtype=torch.long)
+            actions = actions.cuda() if use_cuda else actions
 
         obs, rewards, dones, infos = self.envs.step(actions.cpu().numpy())
         
@@ -128,7 +147,8 @@ class AgentMario:
         # HINT: masks = (1 - dones)
         obs = torch.from_numpy(obs).to(self.device)
         actions = actions.unsqueeze(-1)
-        rewards = torch.from_numpy(rewards).to(self.device).unsqueeze(-1)
+        # The reward is clipped into the range (-15, 15).
+        rewards = torch.from_numpy(rewards).to(self.device).unsqueeze(-1) / 15.0
         dones = torch.from_numpy(np.array(dones).astype(np.float32)).to(self.device)
         masks = (torch.ones(dones.size()).to(self.device) - dones).unsqueeze(-1)
         self.rollouts.insert(obs, hiddens, actions, values, rewards, masks)
@@ -140,6 +160,7 @@ class AgentMario:
         episode_rewards = torch.zeros(self.n_processes, 1).to(self.device)
         total_steps = 0
         avg_rewards = []
+        best_running_reward = 0
         
         # Store first observation
         obs = torch.from_numpy(self.envs.reset()).to(self.device)
@@ -159,10 +180,17 @@ class AgentMario:
                 for r, m in zip(episode_rewards, self.rollouts.masks[step + 1]):
                     if m == 0:
                         running_reward.append(r.item())
+                        # # Save the rollouts with the best running reward.
+                        # if r.item() > best_running_reward:
+                        #     best_running_reward = r.item()
+                        #     self.best_rollouts = copy.deepcopy(self.rollouts)
+                        #     print("Save the rollouts with the best running reward: %.6f" % (best_running_reward))
                 episode_rewards *= self.rollouts.masks[step + 1]
-
-            loss = self._update()
+            
+            loss = self._update(self.rollouts, False)
+            # loss = self._update(self.best_rollouts, True)
             total_steps += self.update_freq * self.n_processes
+            self.steps = total_steps
 
             # Log & save model
             if len(running_reward) == 0:
@@ -183,6 +211,7 @@ class AgentMario:
                 break
 
     def save_model(self, filename):
+        print('save model to', filename)
         torch.save(self.model, os.path.join(self.save_dir, filename))
 
     def load_model(self, path):
@@ -199,5 +228,7 @@ class AgentMario:
             obs = torch.from_numpy(observation).to(self.device).unsqueeze(0)
             masks = torch.ones(1, 1).to(self.device)
             values, action_probs, self.hidden = self.model(obs, self.hidden, masks)
-            action = action_probs.argmax(dim=-1).cpu().numpy()[0]
-        return action
+            m = torch.distributions.Categorical(action_probs)
+            action = m.sample()
+            # action = action_probs.argmax(dim=-1)
+        return action.cpu().numpy()[0]

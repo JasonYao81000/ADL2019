@@ -39,3 +39,7 @@ class RolloutStorage:
         self.hiddens[0].copy_(self.hiddens[-1])
         self.masks[0].copy_(self.masks[-1])
 
+    def compute_returns(self, next_value, gamma):
+        self.returns[-1] = next_value
+        for step in reversed(range(self.rewards.size(0))):
+            self.returns[step] = self.returns[step + 1] * gamma * self.masks[step + 1] + self.rewards[step]
