@@ -37,8 +37,6 @@ class AgentMario:
         self.save_freq = 100000
         self.save_dir = './checkpoints/'
         self.model_name = 'a2c'
-        if args.test_mario:
-            self.load(self.save_dir + self.model_name + '.cpt')
 
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed_all(self.seed)
@@ -58,6 +56,9 @@ class AgentMario:
                 self.hidden_size, self.recurrent).to(self.device)
         self.optimizer = RMSprop(self.model.parameters(), lr=self.lr, 
                 eps=1e-5)
+                
+        if args.test_mario:
+            self.load_model(self.save_dir + self.model_name + '.cpt')
 
         self.hidden = None
         self.init_game_setting()
@@ -185,6 +186,7 @@ class AgentMario:
         torch.save(self.model, os.path.join(self.save_dir, filename))
 
     def load_model(self, path):
+        print('load model from', path)
         self.model = torch.load(path)
 
     def init_game_setting(self):
@@ -193,4 +195,9 @@ class AgentMario:
 
     def make_action(self, observation, test=False):
         # TODO: Use you model to choose an action
+        with torch.no_grad():
+            obs = torch.from_numpy(observation).to(self.device).unsqueeze(0)
+            masks = torch.ones(1, 1).to(self.device)
+            values, action_probs, self.hidden = self.model(obs, self.hidden, masks)
+            action = action_probs.argmax(dim=-1).cpu().numpy()[0]
         return action
