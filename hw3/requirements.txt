@@ -1,0 +1,13 @@
+# ADL2019/hw3
+
+
+## 0. Requirements
+* Install VC++ via Microsoft Visual Studio on the Windows(-> cl.exe is needed!).
+```shell
+$ conda install swig
+$ conda install pytorch==1.0.1 torchvision cudatoolkit=10.0 -c pytorch
+$ pip install opencv-python
+$ pip install --no-index -f https://github.com/Kojoley/atari-py/releases atari_py
+$ pip install gym gym[box2d] gym[atari]
+$ pip install nes_py-6.2.1-cp37-cp37m-win_amd64.whl
+$ pip install gym-super-mario-bros

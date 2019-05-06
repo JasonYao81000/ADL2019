@@ -68,6 +68,7 @@ class ActorCritic(nn.Module):
             hiddens: hidden states of last step -> (n_processes, hidden_size)
         '''
         # TODO
+        x = x.view(int(x.size(0)/hiddens.size(0)), hiddens.size(0), -1)
         # step 1: Unflatten the tensors to (n_steps, n_processes, -1) 
         # step 2: Run a for loop through time to forward rnn
         # step 3: Flatten the outputs

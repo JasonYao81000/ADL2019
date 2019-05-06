@@ -132,7 +132,7 @@ class AgentDQN(Agent):
             print('dqn')
         # TODO:
         # Initialize your replay buffer
-        self.memory = ReplayMemory(100)
+        self.memory = ReplayMemory(10000)
        
 
         if args.test_dqn:
@@ -142,11 +142,11 @@ class AgentDQN(Agent):
         self.GAMMA = 0.99  
         self.EPS_START = 0.9
         self.EPS_END = 0.05
-        self.EPS_DECAY = 200
+        self.EPS_DECAY = 300000
 
         # training hyperparameters
         self.train_freq = 4 # frequency to train the online network
-        self.learning_start = 100 # before we start to update our network, we wait a few steps first to fill the replay.
+        self.learning_start = 10000 # before we start to update our network, we wait a few steps first to fill the replay.
         self.batch_size = 32
         self.num_timesteps = 3000000 # total training steps
         self.display_freq = 10 # frequency to display training progress
@@ -186,7 +186,8 @@ class AgentDQN(Agent):
         if test:
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
             state = state.cuda() if use_cuda else state
-            action = self.online_net(state).max(1)[1].view(1, 1)
+            with torch.no_grad():
+                action = self.online_net(state).max(1)[1].view(1, 1)
             action = action[0, 0].data.item()
         else:  
             sample = random.random()
@@ -227,17 +228,15 @@ class AgentDQN(Agent):
         # Compute Q(s_{t+1}, a) for all next states.
         # Since we do not want to backprop through the expected action values,
         # use torch.no_grad() to stop the gradient from Q(s_{t+1}, a)
-        if self.double_dqn:
-            with torch.no_grad():
+        with torch.no_grad():
+            next_state_values = torch.zeros(self.batch_size)
+            next_state_values = next_state_values.cuda() if use_cuda else next_state_values
+            if self.double_dqn:          
                 selected_action_probs = self.online_net(state_batch)
-                selected_actions = selected_action_probs.argmax(-1)                
-                next_state_values = torch.zeros(self.batch_size)
-                next_state_values = next_state_values.cuda() if use_cuda else next_state_values   
-                next_state_values[non_final_mask] = self.target_net(state_batch)[range(self.batch_size), selected_actions][non_final_mask]
-        else:
-            with torch.no_grad():
-                next_state_values = torch.zeros(self.batch_size)
-                next_state_values = next_state_values.cuda() if use_cuda else next_state_values
+                selected_actions = selected_action_probs.argsort(-1, descending=True)[non_final_mask,:] 
+#                print(selected_actions)
+                next_state_values[non_final_mask] = self.target_net(non_final_next_states).gather(1, selected_actions)[:, 0]
+            else:              
                 next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         # TODO:
         # Compute the expected Q values: rewards + gamma * max(Q(s_{t+1}, a))
@@ -268,6 +267,7 @@ class AgentDQN(Agent):
             state = torch.from_numpy(state).permute(2,0,1).unsqueeze(0)
             state = state.cuda() if use_cuda else state
             
+            episode_reward = 0
             done = False
             while(not done):
                 # select and perform action
@@ -303,13 +303,12 @@ class AgentDQN(Agent):
                 self.steps += 1
 
             save_reward.append(episode_reward)                
-            episode_reward = 0
 
             if episodes_done_num % self.display_freq == 0:
                 print('Episode: %d | Steps: %d/%d | Avg reward: %f | loss: %f '%
                         (episodes_done_num, self.steps, self.num_timesteps, total_reward / self.display_freq, loss))
-                total_reward = 0
                 np.save(self.model_name + '_save_reward', save_reward)
+                total_reward = 0
 
             episodes_done_num += 1
             if self.steps > self.num_timesteps:
