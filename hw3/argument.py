@@ -9,7 +9,4 @@ def add_arguments(parser):
     '''
     parser.add_argument('--double_dqn', action='store_true')
     parser.add_argument('--duel_dqn', action='store_true')
-    parser.add_argument('--world', default=1, help='<world> is a number in {1, 2, 3, 4, 5, 6, 7, 8} indicating the world')
-    parser.add_argument('--stage', default=1, help='<stage> is a number in {1, 2, 3, 4} indicating the stage within a world')
-    parser.add_argument('--restore', default=None, help='the file name of the restoring model')
     return parser

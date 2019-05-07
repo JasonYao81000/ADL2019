@@ -9,9 +9,9 @@ def make_env(env_id, seed, rank):
         return env
     return _thunk
 
-def make_vec_envs(env_name, seed, num_processes):
+def make_vec_envs(env_names, seed, num_processes):
     envs = [
-        make_env(env_name, seed, i)
+        make_env(env_names[i], seed, i)
         for i in range(num_processes)
     ]
     envs = ShmemVecEnv(envs)

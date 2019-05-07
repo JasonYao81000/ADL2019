@@ -27,9 +27,9 @@ class AgentMario:
         self.gamma = 0.9
         self.hidden_size = 512
         self.update_freq = 20
-        self.n_processes = 10
+        self.n_processes = 32
         self.seed = 7122
-        self.max_steps = 1e7
+        self.max_steps = 1e8
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
@@ -40,19 +40,15 @@ class AgentMario:
         self.display_freq = 4000
         self.save_freq = 100000
         self.save_dir = './checkpoints/'
-        self.start_world = int(args.world)
-        self.start_stage = int(args.stage)
-        self.model_name = "a2c-%d-%d" % (self.start_world, self.start_stage)
-        self.env_name = "SuperMarioBros-%d-%d-v0" % (self.start_world, self.start_stage)
-        print("model_name: %s, env_name: %s" %(self.model_name, self.env_name))
+        self.model_name = 'a2c'
+        self.env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
 
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed_all(self.seed)
         
         self.envs = env
         if self.envs == None:
-            self.envs = make_vec_envs(self.env_name, self.seed,
-                    self.n_processes)
+            self.envs = make_vec_envs(self.env_names, self.seed, self.n_processes)
         self.device = torch.device("cuda:0" if use_cuda else "cpu")
 
         self.obs_shape = self.envs.observation_space.shape
@@ -65,10 +61,6 @@ class AgentMario:
         self.optimizer = RMSprop(self.model.parameters(), lr=self.lr, 
                 eps=1e-5)
 
-        if args.restore:
-            self.load_model(self.save_dir + args.restore)
-
-        self.test_mario = args.test_mario
         if args.test_mario:
             self.load_model(self.save_dir + self.model_name + '.cpt')
 
@@ -78,7 +70,7 @@ class AgentMario:
         self.steps = 0 # num. of passed steps. this may be useful in controlling exploration
         self.EPS_START = 0.9
         self.EPS_END = 0.05
-        self.EPS_DECAY = self.max_steps / 100
+        self.EPS_DECAY = self.max_steps / 1000
         self.max_reward = 15.0
 
     def _update(self, rollouts):
@@ -146,7 +138,7 @@ class AgentMario:
             actions = actions.cuda() if use_cuda else actions
 
         obs, rewards, dones, infos = self.envs.step(actions.cpu().numpy())
-        
+
         # TODO:
         # Store transitions (obs, hiddens, actions, values, rewards, masks)
         # You need to convert arrays to tensors first
@@ -221,19 +213,8 @@ class AgentMario:
     def init_game_setting(self):
         if self.recurrent:
             self.hidden = torch.zeros(1, self.hidden_size).to(self.device)
-        if self.test_mario:
-            self.test_world = 1
-            self.test_stage = 1
-            self.model_name = "a2c-%d-%d" % (self.test_world, self.test_stage)
-            self.load_model(self.save_dir + self.model_name + '.cpt')
 
     def make_action(self, observation, test=False, info=None):
-        if info:
-            if self.test_world != info['world'] or self.test_stage != info['stage']:
-                self.test_world = info['world']
-                self.test_stage = info['stage']
-                self.model_name = "a2c-%d-%d" % (self.test_world, self.test_stage)
-                self.load_model(self.save_dir + self.model_name + '.cpt')
         # TODO: Use you model to choose an action
         with torch.no_grad():
             obs = torch.from_numpy(observation).to(self.device).unsqueeze(0)
