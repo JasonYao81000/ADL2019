@@ -26,8 +26,8 @@ class AgentMario:
         self.lr = 7e-4
         self.gamma = 0.9
         self.hidden_size = 512
-        self.update_freq = 16
-        self.n_processes = 5
+        self.update_freq = 20
+        self.n_processes = 10
         self.seed = 7122
         self.max_steps = 1e7
         self.grad_norm = 0.5
@@ -73,6 +73,7 @@ class AgentMario:
         self.EPS_START = 0.9
         self.EPS_END = 0.05
         self.EPS_DECAY = self.max_steps / 100
+        self.max_reward = 15.0
 
     def _update(self, rollouts, is_best=False):
         # TODO: Compute returns
@@ -148,7 +149,7 @@ class AgentMario:
         obs = torch.from_numpy(obs).to(self.device)
         actions = actions.unsqueeze(-1)
         # The reward is clipped into the range (-15, 15).
-        rewards = torch.from_numpy(rewards).to(self.device).unsqueeze(-1) / 15.0
+        rewards = torch.from_numpy(rewards).to(self.device).unsqueeze(-1) / self.max_reward
         dones = torch.from_numpy(np.array(dones).astype(np.float32)).to(self.device)
         masks = (torch.ones(dones.size()).to(self.device) - dones).unsqueeze(-1)
         self.rollouts.insert(obs, hiddens, actions, values, rewards, masks)
@@ -197,11 +198,11 @@ class AgentMario:
                 avg_reward = 0
             else:
                 avg_reward = sum(running_reward) / len(running_reward)
-            avg_rewards.append(avg_reward)
+            avg_rewards.append(avg_reward * self.max_reward)
 
             if total_steps % self.display_freq == 0:
                 print('Steps: %d/%d | Avg reward: %f'%
-                        (total_steps, self.max_steps, avg_reward))
+                        (total_steps, self.max_steps, avg_reward * self.max_reward))
                 np.save('./results/' + self.model_name + '_avg_rewards.npy', np.array(avg_rewards))
             
             if total_steps % self.save_freq == 0:
