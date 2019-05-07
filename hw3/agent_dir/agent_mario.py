@@ -39,8 +39,8 @@ class AgentMario:
         self.recurrent = True # <- ActorCritic._forward_rnn()
         #######################    Please check a2c/actor_critic.py
         
-        self.display_freq = 16000
-        self.save_freq = 128000
+        self.display_freq = self.update_freq * self.n_processes * 32
+        self.save_freq = self.update_freq * self.n_processes * 200
         self.save_dir = './checkpoints/'
         self.model_name = 'a2c'
         
