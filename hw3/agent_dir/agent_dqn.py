@@ -233,9 +233,9 @@ class AgentDQN(Agent):
             next_state_values = next_state_values.cuda() if use_cuda else next_state_values
             if self.double_dqn:          
                 selected_action_probs = self.online_net(state_batch)
-                selected_actions = selected_action_probs.argsort(-1, descending=True)[non_final_mask,:] 
+                selected_actions = selected_action_probs.argamx(-1)[non_final_mask] 
 #                print(selected_actions)
-                next_state_values[non_final_mask] = self.target_net(non_final_next_states).gather(1, selected_actions)[:, 0]
+                next_state_values[non_final_mask] = self.target_net(non_final_next_states)[range(self.batch_size)[non_final_mask], selected_actions]
             else:              
                 next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         # TODO:
