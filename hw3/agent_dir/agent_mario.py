@@ -40,14 +40,18 @@ class AgentMario:
         self.display_freq = 4000
         self.save_freq = 100000
         self.save_dir = './checkpoints/'
-        self.model_name = 'a2c'
+        self.start_world = int(args.world)
+        self.start_stage = int(args.stage)
+        self.model_name = "a2c-%d-%d" % (self.start_world, self.start_stage)
+        self.env_name = "SuperMarioBros-%d-%d-v0" % (self.start_world, self.start_stage)
+        print("model_name: %s, env_name: %s" %(self.model_name, self.env_name))
 
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed_all(self.seed)
         
         self.envs = env
         if self.envs == None:
-            self.envs = make_vec_envs('SuperMarioBros-v0', self.seed,
+            self.envs = make_vec_envs(self.env_name, self.seed,
                     self.n_processes)
         self.device = torch.device("cuda:0" if use_cuda else "cpu")
 
@@ -55,14 +59,16 @@ class AgentMario:
         self.act_shape = self.envs.action_space.n
 
         self.rollouts = RolloutStorage(self.update_freq, self.n_processes,
-                self.obs_shape, self.act_shape, self.hidden_size) 
-        # self.best_rollouts = RolloutStorage(self.update_freq, self.n_processes,
-        #         self.obs_shape, self.act_shape, self.hidden_size) 
+                self.obs_shape, self.act_shape, self.hidden_size)
         self.model = ActorCritic(self.obs_shape, self.act_shape,
                 self.hidden_size, self.recurrent).to(self.device)
         self.optimizer = RMSprop(self.model.parameters(), lr=self.lr, 
                 eps=1e-5)
 
+        if args.restore:
+            self.load_model(self.save_dir + args.restore)
+
+        self.test_mario = args.test_mario
         if args.test_mario:
             self.load_model(self.save_dir + self.model_name + '.cpt')
 
@@ -75,7 +81,7 @@ class AgentMario:
         self.EPS_DECAY = self.max_steps / 100
         self.max_reward = 15.0
 
-    def _update(self, rollouts, is_best=False):
+    def _update(self, rollouts):
         # TODO: Compute returns
         # R_t = reward_t + gamma * R_{t+1}
         with torch.no_grad():
@@ -113,8 +119,7 @@ class AgentMario:
         
         # TODO:
         # Clear rollouts after update (RolloutStorage.reset())
-        if is_best == False:
-            rollouts.reset()
+        rollouts.reset()
 
         return loss.item()
 
@@ -181,15 +186,9 @@ class AgentMario:
                 for r, m in zip(episode_rewards, self.rollouts.masks[step + 1]):
                     if m == 0:
                         running_reward.append(r.item())
-                        # # Save the rollouts with the best running reward.
-                        # if r.item() > best_running_reward:
-                        #     best_running_reward = r.item()
-                        #     self.best_rollouts = copy.deepcopy(self.rollouts)
-                        #     print("Save the rollouts with the best running reward: %.6f" % (best_running_reward))
                 episode_rewards *= self.rollouts.masks[step + 1]
             
-            loss = self._update(self.rollouts, False)
-            # loss = self._update(self.best_rollouts, True)
+            loss = self._update(self.rollouts)
             total_steps += self.update_freq * self.n_processes
             self.steps = total_steps
 
@@ -222,8 +221,19 @@ class AgentMario:
     def init_game_setting(self):
         if self.recurrent:
             self.hidden = torch.zeros(1, self.hidden_size).to(self.device)
+        if self.test_mario:
+            self.test_world = 1
+            self.test_stage = 1
+            self.model_name = "a2c-%d-%d" % (self.test_world, self.test_stage)
+            self.load_model(self.save_dir + self.model_name + '.cpt')
 
-    def make_action(self, observation, test=False):
+    def make_action(self, observation, test=False, info=None):
+        if info:
+            if self.test_world != info['world'] or self.test_stage != info['stage']:
+                self.test_world = info['world']
+                self.test_stage = info['stage']
+                self.model_name = "a2c-%d-%d" % (self.test_world, self.test_stage)
+                self.load_model(self.save_dir + self.model_name + '.cpt')
         # TODO: Use you model to choose an action
         with torch.no_grad():
             obs = torch.from_numpy(observation).to(self.device).unsqueeze(0)
