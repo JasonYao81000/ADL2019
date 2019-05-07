@@ -29,7 +29,7 @@ class AgentMario:
         self.update_freq = 20
         self.n_processes = 32
         self.seed = 7122
-        self.max_steps = 1e8
+        self.max_steps = 1e9
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
@@ -37,8 +37,8 @@ class AgentMario:
         self.recurrent = True # <- ActorCritic._forward_rnn()
         #######################    Please check a2c/actor_critic.py
         
-        self.display_freq = 4000
-        self.save_freq = 100000
+        self.display_freq = 16000
+        self.save_freq = 128000
         self.save_dir = './checkpoints/'
         self.model_name = 'a2c'
         self.env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
