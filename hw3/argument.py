@@ -9,4 +9,5 @@ def add_arguments(parser):
     '''
     parser.add_argument('--duel_dqn', action='store_true', help='whether DQN')
     parser.add_argument('--double_dqn', action='store_true', help='whether DQN')
+    parser.add_argument('--ppo', action='store_true', help='whether PPO')
     return parser
