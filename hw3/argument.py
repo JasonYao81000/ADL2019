@@ -9,4 +9,5 @@ def add_arguments(parser):
     '''
     parser.add_argument('--double_dqn', action='store_true')
     parser.add_argument('--duel_dqn', action='store_true')
+    parser.add_argument('--world', default=1, help='<world> is a number in {1, 2, 3, 4, 5, 6, 7, 8} indicating the world')
     return parser

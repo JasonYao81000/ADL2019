@@ -27,11 +27,16 @@ class AgentMario:
         self.gamma = 0.9
         self.hidden_size = 512
         self.update_freq = 20
-        self.env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
-        self.env_names.remove('SuperMarioBros-7-4-v0') # Remove 7-4.
+        self.start_world = int(args.world)
+        self.env_names = ["SuperMarioBros-%d-%d-v0" % (self.start_world, s + 1) for _ in range(8) for s in range(4)]
+        if 'SuperMarioBros-4-4-v0' in self.env_names:
+            self.env_names.remove('SuperMarioBros-4-4-v0') # Remove 4-4.
+        if 'SuperMarioBros-7-4-v0' in self.env_names:
+            self.env_names.remove('SuperMarioBros-7-4-v0') # Remove 7-4.
+        print(self.env_names)
         self.n_processes = len(self.env_names)
         self.seed = 7122
-        self.max_steps = 1e9
+        self.max_steps = 1e7
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
@@ -42,7 +47,7 @@ class AgentMario:
         self.display_freq = self.update_freq * self.n_processes * 32
         self.save_freq = self.update_freq * self.n_processes * 200
         self.save_dir = './checkpoints/'
-        self.model_name = 'a2c'
+        self.model_name = 'a2c-world-%d' % (self.start_world)
         
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed_all(self.seed)
