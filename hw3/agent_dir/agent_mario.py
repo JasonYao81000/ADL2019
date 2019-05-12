@@ -26,7 +26,7 @@ class AgentMario:
         self.lr = 7e-4
         self.gamma = 0.9
         self.hidden_size = 512
-        self.update_freq = 20
+        self.update_freq = 8
         self.start_world = int(args.world)
         self.env_names = ["SuperMarioBros-%d-%d-v0" % (self.start_world, s + 1) for _ in range(8) for s in range(4)]
         if 'SuperMarioBros-4-4-v0' in self.env_names:
@@ -35,8 +35,8 @@ class AgentMario:
             self.env_names.remove('SuperMarioBros-7-4-v0') # Remove 7-4.
         print(self.env_names)
         self.n_processes = len(self.env_names)
-        self.seed = 7122
-        self.max_steps = 1e7
+        self.seed = 9487
+        self.max_steps = 8e7
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
