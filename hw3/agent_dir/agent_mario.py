@@ -28,7 +28,10 @@ class AgentMario:
         self.hidden_size = 512
         self.update_freq = 10
         self.start_world = int(args.world)
-        self.env_names = ["SuperMarioBros-%d-%d-v0" % (self.start_world, s + 1) for _ in range(8) for s in range(4)]
+        if self.start_world == 0:
+            self.env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
+        else:
+            self.env_names = ["SuperMarioBros-%d-%d-v0" % (self.start_world, s + 1) for _ in range(8) for s in range(4)]
         if 'SuperMarioBros-4-4-v0' in self.env_names:
             self.env_names.remove('SuperMarioBros-4-4-v0') # Remove 4-4.
         if 'SuperMarioBros-7-4-v0' in self.env_names:
