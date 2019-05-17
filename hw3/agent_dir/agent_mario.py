@@ -26,7 +26,7 @@ class AgentMario:
         self.lr = 7e-4
         self.gamma = 0.9
         self.hidden_size = 512
-        self.update_freq = 8
+        self.update_freq = 10
         self.start_world = int(args.world)
         self.env_names = ["SuperMarioBros-%d-%d-v0" % (self.start_world, s + 1) for _ in range(8) for s in range(4)]
         if 'SuperMarioBros-4-4-v0' in self.env_names:
@@ -36,7 +36,7 @@ class AgentMario:
         print(self.env_names)
         self.n_processes = len(self.env_names)
         self.seed = 9487
-        self.max_steps = 8e7
+        self.max_steps = 2e7
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
@@ -164,7 +164,7 @@ class AgentMario:
         episode_rewards = torch.zeros(self.n_processes, 1).to(self.device)
         total_steps = 0
         avg_rewards = []
-        best_running_reward = 0
+        best_avg_reward = 0
         
         # Store first observation
         obs = torch.from_numpy(self.envs.reset()).to(self.device)
@@ -205,6 +205,12 @@ class AgentMario:
             if total_steps % self.save_freq == 0:
                 self.save_model(self.model_name + '.cpt')
             
+            if avg_reward > best_avg_reward:
+                best_avg_reward = avg_reward
+                print('Steps: %d/%d | Best Avg reward: %f'%
+                        (total_steps, self.max_steps, avg_reward * self.max_reward))
+                self.save_model(self.model_name + '-best.cpt')
+
             if total_steps >= self.max_steps:
                 break
 
