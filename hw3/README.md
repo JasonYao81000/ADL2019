@@ -34,29 +34,46 @@ $ pip install gym-super-mario-bros cloudpickle
 * Improvements to Policy Gradient are allowed, not including Actor-Critic series.
 
 ### 1.3. Training Policy Gradient on `LunarLander`
-1. Training Policy Gradient:
+1. Training Policy Gradient
+    
     `$ python main.py --train_pg`
-2. Training Policy Gradient with PPO:
+2. Training Policy Gradient with PPO
+    
     `$ python main.py --train_pg --ppo`
 
 ### 1.4. Testing Policy Gradient on `LunarLander`
-1. Testing Policy Gradient:
+1. Testing Policy Gradient
+    
     `$ python main.py --test_pg --video_dir ./results/pg`
-2. Testing Policy Gradient with PPO:
+2. Testing Policy Gradient with PPO
+    
     `$ python main.py --test_pg --ppo --video_dir ./results/pg-ppo`
 
 ### 1.5 Testing Videos for DQN on `Assault`
 1. Policy Gradient
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000000.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000001.gif" width="40%">
+    <details><summary>CLICK ME</summary>
+    <p>
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000027.gif" width="40%">
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000000.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000001.gif" width="40%">
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg/openaigym.video.0.21396.video000027.gif" width="40%">
+
+    </p>
+    </details>
 
 2. Policy Gradient with PPO
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000000.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000001.gif" width="40%">
+    <details><summary>CLICK ME</summary>
+    <p>
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000027.gif" width="40%">
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000000.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000001.gif" width="40%">
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000027.gif" width="40%">
+
+
+    </p>
+    </details>
 
 ### 1.6. Mean Reward in 30 Episodes
 1. Policy Gradient: `Run 30 episodes, Mean: 159.41205516866356`
@@ -105,41 +122,73 @@ $ pip install gym-super-mario-bros cloudpickle
 * Improvements to DQN are allowed,  not including Actor-Critic series.
 
 ### 2.3. Training DQN on `Assault`
-1. Training DQN:
+1. Training DQN
+    
     `$ python main.py --train_dqn`
-2. Training Dual DQN:
+2. Training Dual DQN
+    
     `$ python main.py --train_dqn --duel_dqn`
-2. Training Double DQN:
+2. Training Double DQN
+    
     `$ python main.py --train_dqn --double_dqn`
-2. Training Double Dual DQN:
+2. Training Double Dual DQN
+    
     `$ python main.py --train_dqn --double_dqn --duel_dqn`
 
 ### 2.4. Testing DQN on `Assault`
-1. Testing DQN:
+1. Testing DQN
+    
     `$ python main.py --test_dqn --video_dir ./results/dqn`
-2. Testing Dual DQN:
+2. Testing Dual DQN
+    
     `$ python main.py --test_dqn --duel_dqn --video_dir ./results/duel_dqn`
-2. Testing Double DQN:
+2. Testing Double DQN
+    
     `$ python main.py --test_dqn --double_dqn --video_dir ./results/double_dqn`
-2. Testing Double Dual DQN:
+2. Testing Double Dual DQN
+    
     `$ python main.py --test_dqn --double_dqn --duel_dqn --video_dir ./results/double_duel_dqn`
 
 ### 2.5 Testing Videos for DQN on `Assault`
 1. DQN
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000027.gif" width="25%">
+    <details><summary>CLICK ME</summary>
+    <p>
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000027.gif" width="25%">
+
+    </p>
+    </details>
 
 2. Dual DQN
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000027.gif" width="25%">
+    <details><summary>CLICK ME</summary>
+    <p>
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/duel_dqn/openaigym.video.0.2572.video000027.gif" width="25%">
+
+    </p>
+    </details>
 
 3. Double DQN
-
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000027.gif" width="25%">
+    
+    <details><summary>CLICK ME</summary>
+    <p>
+    
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_dqn/openaigym.video.0.14420.video000027.gif" width="25%">
+    
+    </p>
+    </details>
 
 4. Double Dual DQN
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000027.gif" width="25%">
+    <details><summary>CLICK ME</summary>
+    <p>
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000027.gif" width="25%">
+
+    </p>
+    </details>
 
 ### 2.6. Mean Reward in 100 Episodes
 1. DQN: `Run 100 episodes, Mean: 204.71`
@@ -187,40 +236,69 @@ $ pip install gym-super-mario-bros cloudpickle
     * [x] Learning Rate: 7e-4
 
 ### 3.3. Training A2C on `gym-super-mario-bros`
-1. Training A2C on all worlds: `$ python main.py --train_mario --world 0`
-2. Training A2C on the world 1: `$ python main.py --train_mario --world 1`
+1. Training A2C on all worlds
+    
+    `$ python main.py --train_mario --world 0`
+2. Training A2C on the world 1
+
+    `$ python main.py --train_mario --world 1`
 
 ### 3.4. Testing A2C on `gym-super-mario-bros`
-1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
-    `$ python main.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-1-1`
-2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
-    `$ python main.py --test_mario --do_render --world 1 --video_dir ./results/a2c-1-1-1`
-3. Testing A2C trained on **all worlds** for **all worlds**:
-    `$ python test_mario.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-all`
-4. Testing A2C trained on the **world 1** for **all worlds**:
+1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**
+    
+    `$ python main.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-1-1` 
+3. Testing A2C trained on the **world 1** starting from **world 1 stage 1**
+    
+    `$ python main.py --test_mario --do_render --world 1 --video_dir ./results/a2c-1-1-1` 
+3. Testing A2C trained on **all worlds** for **all worlds**
+    
+    `$ python test_mario.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-all` 
+4. Testing A2C trained on the **world 1** for **all worlds**
+    
     `$ python test_mario.py --test_mario --do_render --world 1 --video_dir ./results/a2c-1-all`
-
 ### 3.5 Testing Videos for A2C on `gym-super-mario-bros`
 1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
 
+    <details><summary>CLICK ME</summary>
+    <p>
+    </p>
+    </details>
+
 2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
 
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000008.gif">
+    <details><summary>CLICK ME</summary>
+    <p>
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000008.gif">
+
+    </p>
+    </details>
 
 3. Testing A2C trained on **all worlds** for **all worlds**:
 
+    <details><summary>CLICK ME</summary>
+    <p>
+    </p>
+    </details>
+
 4. Testing A2C trained on the **world 1** for **all worlds**:
 
-| World\Stage |  1  |  2  |  3  |  4  |
-| :---------: | :-: | :-: | :-: | :-: |
-| 1 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-4-v0.gif"> |
-| 2 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-4-v0.gif"> |
-| 3 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-4-v0.gif"> |
-| 4 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-4-v0.gif"> |
-| 5 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-4-v0.gif"> |
-| 6 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-4-v0.gif"> |
-| 7 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-4-v0.gif"> |
-| 8 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-4-v0.gif"> |
+    <details><summary>CLICK ME</summary>
+    <p>
+
+    | World\Stage |  1  |  2  |  3  |  4  |
+    | :---------: | :-: | :-: | :-: | :-: |
+    | 1 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-4-v0.gif"> |
+    | 2 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-4-v0.gif"> |
+    | 3 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-4-v0.gif"> |
+    | 4 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-4-v0.gif"> |
+    | 5 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-4-v0.gif"> |
+    | 6 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-4-v0.gif"> |
+    | 7 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-4-v0.gif"> |
+    | 8 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-4-v0.gif"> |
+
+    </p>
+    </details>
 
 ### 3.6. Mean Reward in 10 Episodes
 1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
@@ -266,6 +344,7 @@ $ pip install gym-super-mario-bros cloudpickle
     ```
 
 ### 3.7. Learning Curve
+
 * Learning Curve of A2C trained on **all worlds**
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_a2c_world_0.png" width="100%">
 
