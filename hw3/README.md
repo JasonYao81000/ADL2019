@@ -58,7 +58,7 @@ $ pip install gym-super-mario-bros cloudpickle
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000027.gif" width="40%">
 
-### 1.6. Rewards in 30 Episodes
+### 1.6. Mean Reward in 30 Episodes
 1. Policy Gradient: `Run 30 episodes, Mean: 159.41205516866356`
 2. Policy Gradient with PPO: `Run 30 episodes, Mean: 218.51080037730148`
 
@@ -141,7 +141,7 @@ $ pip install gym-super-mario-bros cloudpickle
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/double_duel_dqn/openaigym.video.0.18952.video000027.gif" width="25%">
 
-### 2.6. Rewards in 100 Episodes
+### 2.6. Mean Reward in 100 Episodes
 1. DQN: `Run 100 episodes, Mean: 204.71`
 2. Dual DQN: `Run 100 episodes, Mean: 193.49`
 3. Double DQN: `Run 100 episodes, Mean: 188.83`
@@ -192,17 +192,80 @@ $ pip install gym-super-mario-bros cloudpickle
 
 ### 3.4. Testing A2C on `gym-super-mario-bros`
 1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
-    `$ python main.py --test_mario --do_render --world 0`
+    `$ python main.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-1-1`
 2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
-    `$ python main.py --test_mario --do_render --world 1`
+    `$ python main.py --test_mario --do_render --world 1 --video_dir ./results/a2c-1-1-1`
 3. Testing A2C trained on **all worlds** for **all worlds**:
-    `$ python test_mario.py --test_mario --do_render --world 0`
+    `$ python test_mario.py --test_mario --do_render --world 0 --video_dir ./results/a2c-all-all`
 4. Testing A2C trained on the **world 1** for **all worlds**:
-    `$ python test_mario.py --test_mario --do_render --world 1`
+    `$ python test_mario.py --test_mario --do_render --world 1 --video_dir ./results/a2c-1-all`
 
-### 3.5. Rewards in 10 Episodes
+### 3.5 Testing Videos for A2C on `gym-super-mario-bros`
+1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
 
-### 3.6. Learning Curve
+2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
+
+<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.1804.video000008.gif">
+
+3. Testing A2C trained on **all worlds** for **all worlds**:
+
+4. Testing A2C trained on the **world 1** for **all worlds**:
+
+| World\Stage |  1  |  2  |  3  |  4  |
+| :---------: | :-: | :-: | :-: | :-: |
+| 1 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-1-4-v0.gif"> |
+| 2 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-2-4-v0.gif"> |
+| 3 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-3-4-v0.gif"> |
+| 4 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-4-4-v0.gif"> |
+| 5 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-5-4-v0.gif"> |
+| 6 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-6-4-v0.gif"> |
+| 7 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-7-4-v0.gif"> |
+| 8 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-all/SuperMarioBros-8-4-v0.gif"> |
+
+### 3.6. Mean Reward in 10 Episodes
+1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
+    ``
+2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
+    `Run 10 episodes, Mean: 4015.8699999999953`
+3. Testing A2C trained on **all worlds** for **all worlds**:
+    ``
+4. Testing A2C trained on the **world 1** for **all worlds**:
+    ```
+    Env: SuperMarioBros-1-1-v0, Run 10 episodes, Mean: 2240.850000000001
+    Env: SuperMarioBros-1-2-v0, Run 10 episodes, Mean: 1582.4100000000012
+    Env: SuperMarioBros-1-3-v0, Run 10 episodes, Mean: 555.2499999999999
+    Env: SuperMarioBros-1-4-v0, Run 10 episodes, Mean: 1457.3900000000008
+    Env: SuperMarioBros-2-1-v0, Run 10 episodes, Mean: 453.8199999999998
+    Env: SuperMarioBros-2-2-v0, Run 10 episodes, Mean: 1278.5000000000007
+    Env: SuperMarioBros-2-3-v0, Run 10 episodes, Mean: 819.9699999999997
+    Env: SuperMarioBros-2-4-v0, Run 10 episodes, Mean: 253.88000000000002
+    Env: SuperMarioBros-3-1-v0, Run 10 episodes, Mean: 420.3499999999999
+    Env: SuperMarioBros-3-2-v0, Run 10 episodes, Mean: 538.7299999999998
+    Env: SuperMarioBros-3-3-v0, Run 10 episodes, Mean: 408.60999999999996
+    Env: SuperMarioBros-3-4-v0, Run 10 episodes, Mean: 288.59999999999997
+    Env: SuperMarioBros-4-1-v0, Run 10 episodes, Mean: 577.39
+    Env: SuperMarioBros-4-2-v0, Run 10 episodes, Mean: 230.07999999999998
+    Env: SuperMarioBros-4-3-v0, Run 10 episodes, Mean: 351.27
+    Env: SuperMarioBros-4-4-v0, Run 10 episodes, Mean: 216.67
+    Env: SuperMarioBros-5-1-v0, Run 10 episodes, Mean: 413.0299999999999
+    Env: SuperMarioBros-5-2-v0, Run 10 episodes, Mean: 567.9199999999997
+    Env: SuperMarioBros-5-3-v0, Run 10 episodes, Mean: 434.42999999999995
+    Env: SuperMarioBros-5-4-v0, Run 10 episodes, Mean: 243.29000000000002
+    Env: SuperMarioBros-6-1-v0, Run 10 episodes, Mean: 455.98
+    Env: SuperMarioBros-6-2-v0, Run 10 episodes, Mean: 381.4
+    Env: SuperMarioBros-6-3-v0, Run 10 episodes, Mean: 293.27000000000004
+    Env: SuperMarioBros-6-4-v0, Run 10 episodes, Mean: 464.34
+    Env: SuperMarioBros-7-1-v0, Run 10 episodes, Mean: 347.09000000000003
+    Env: SuperMarioBros-7-2-v0, Run 10 episodes, Mean: 706.6
+    Env: SuperMarioBros-7-3-v0, Run 10 episodes, Mean: 476.28999999999996
+    Env: SuperMarioBros-7-4-v0, Run 10 episodes, Mean: 285.99
+    Env: SuperMarioBros-8-1-v0, Run 10 episodes, Mean: 344.25
+    Env: SuperMarioBros-8-2-v0, Run 10 episodes, Mean: 278.83000000000004
+    Env: SuperMarioBros-8-3-v0, Run 10 episodes, Mean: 462.8799999999998
+    Env: SuperMarioBros-8-4-v0, Run 10 episodes, Mean: 168.51000000000002
+    ```
+
+### 3.7. Learning Curve
 * Learning Curve of A2C
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_a2c.png" width="100%">
 
