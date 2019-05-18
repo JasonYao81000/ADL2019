@@ -36,7 +36,8 @@ class AgentMario:
             self.env_names.remove('SuperMarioBros-4-4-v0') # Remove 4-4.
         if 'SuperMarioBros-7-4-v0' in self.env_names:
             self.env_names.remove('SuperMarioBros-7-4-v0') # Remove 7-4.
-        print(self.env_names)
+        if not args.test_mario:
+            print(len(self.env_names), self.env_names)
         self.n_processes = len(self.env_names)
         self.seed = 9487
         self.max_steps = 8e7 if self.start_world == 0 else 2e7
