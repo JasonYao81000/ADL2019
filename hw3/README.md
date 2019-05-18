@@ -266,7 +266,13 @@ $ pip install gym-super-mario-bros cloudpickle
     ```
 
 ### 3.7. Learning Curve
-* Learning Curve of A2C
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_a2c.png" width="100%">
+* Learning Curve of A2C trained on **all worlds**
+<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_a2c_world_0.png" width="100%">
+
+* Learning Curve of A2C trained on the **world 1**
+<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_a2c_world_1.png" width="100%">
+
+* Comparison between the two environments
+<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_A2Cs.png" width="100%">
 
 ###### tags: `NTU` `ADL` `2019`
