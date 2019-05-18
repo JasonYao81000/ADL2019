@@ -1,4 +1,5 @@
 import argparse
+import os
 import numpy as np
 from environment import Environment
 
@@ -17,30 +18,40 @@ def parse():
     args = parser.parse_args()
     return args
 
-def run(args):
+def test(env_name, video_dir, total_episodes=10):
     from agent_dir.agent_mario import AgentMario
-    env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
+    print('Start playing %s ...' % (env_name))
     rewards = []
-    for env_name in env_names:
-        print('Start playing %s ...' % (env_name))
-        env = Environment(env_name, args, test=True)
-        agent = AgentMario(env, args)
-        env.seed(seed)
+    args.video_dir = video_dir + '/' + env_name + '/'
+    env = Environment(env_name, args, test=True)
+    agent = AgentMario(env, args)
+    env.seed(seed)
+    for i in range(total_episodes):
         state = env.reset()
         agent.init_game_setting()
         done = False
         episode_reward = 0.0
-
+        
+        #playing one game
         while(not done):
             action = agent.make_action(state, test=True)
             state, reward, done, info = env.step(action)
             episode_reward += reward
-
+            
         rewards.append(episode_reward)
-        print('Reward:', episode_reward)
-
-    print('Run %d envs' % (len(env_names)))
+    print('Env:', env_name, end=', ')
+    print('Run %d episodes'%(total_episodes), end=', ')
     print('Mean:', np.mean(rewards))
+
+def run(args):
+    video_dir = args.video_dir
+    if not os.path.exists(video_dir):
+        os.makedirs(video_dir)
+    
+    env_names = ["SuperMarioBros-%d-%d-v0" % (w + 1, s + 1) for w in range(8) for s in range(4)]
+    rewards = []
+    for env_name in env_names:
+        test(env_name, video_dir)
 
 if __name__ == '__main__':
     args = parse()
