@@ -39,7 +39,7 @@ class AgentMario:
         print(self.env_names)
         self.n_processes = len(self.env_names)
         self.seed = 9487
-        self.max_steps = 2e7
+        self.max_steps = 8e7 if self.start_world == 0 else 2e7
         self.grad_norm = 0.5
         self.entropy_weight = 0.05
 
