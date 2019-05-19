@@ -261,6 +261,9 @@ $ pip install gym-super-mario-bros cloudpickle
 
     <details><summary>CLICK ME</summary>
     <p>
+
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000008.gif">
+    
     </p>
     </details>
 
@@ -278,6 +281,18 @@ $ pip install gym-super-mario-bros cloudpickle
 
     <details><summary>CLICK ME</summary>
     <p>
+    
+    | World\Stage |  1  |  2  |  3  |  4  |
+    | :---------: | :-: | :-: | :-: | :-: |
+    | 1 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-1-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-1-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-1-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-1-4-v0.gif"> |
+    | 2 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-2-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-2-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-2-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-2-4-v0.gif"> |
+    | 3 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-3-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-3-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-3-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-3-4-v0.gif"> |
+    | 4 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-4-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-4-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-4-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-4-4-v0.gif"> |
+    | 5 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-5-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-5-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-5-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-5-4-v0.gif"> |
+    | 6 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-6-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-6-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-6-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-6-4-v0.gif"> |
+    | 7 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-7-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-7-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-7-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-7-4-v0.gif"> |
+    | 8 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-4-v0.gif"> |
+    
     </p>
     </details>
 
@@ -302,11 +317,44 @@ $ pip install gym-super-mario-bros cloudpickle
 
 ### 3.6. Mean Reward in 10 Episodes
 1. Testing A2C trained on **all worlds** starting from **world 1 stage 1**:
-    ``
+    `Run 10 episodes, Mean: 2798.9850000000024`
 2. Testing A2C trained on the **world 1** starting from **world 1 stage 1**: 
     `Run 10 episodes, Mean: 4015.8699999999953`
 3. Testing A2C trained on **all worlds** for **all worlds**:
-    ``
+    ```
+    Env: SuperMarioBros-1-1-v0, Run 10 episodes, Mean: 1905.400000000002
+    Env: SuperMarioBros-1-2-v0, Run 10 episodes, Mean: 1015.8599999999999
+    Env: SuperMarioBros-1-3-v0, Run 10 episodes, Mean: 551.06
+    Env: SuperMarioBros-1-4-v0, Run 10 episodes, Mean: 1483.6600000000005
+    Env: SuperMarioBros-2-1-v0, Run 10 episodes, Mean: 554.0799999999997
+    Env: SuperMarioBros-2-2-v0, Run 10 episodes, Mean: 1502.7600000000007
+    Env: SuperMarioBros-2-3-v0, Run 10 episodes, Mean: 1949.8200000000015
+    Env: SuperMarioBros-2-4-v0, Run 10 episodes, Mean: 979.9000000000002
+    Env: SuperMarioBros-3-1-v0, Run 10 episodes, Mean: 1110.5700000000002
+    Env: SuperMarioBros-3-2-v0, Run 10 episodes, Mean: 1585.2500000000011
+    Env: SuperMarioBros-3-3-v0, Run 10 episodes, Mean: 1519.740000000001
+    Env: SuperMarioBros-3-4-v0, Run 10 episodes, Mean: 1131.8700000000003
+    Env: SuperMarioBros-4-1-v0, Run 10 episodes, Mean: 1687.1000000000015
+    Env: SuperMarioBros-4-2-v0, Run 10 episodes, Mean: 864.7199999999997
+    Env: SuperMarioBros-4-3-v0, Run 10 episodes, Mean: 650.3199999999999
+    Env: SuperMarioBros-4-4-v0, Run 10 episodes, Mean: 455.3300000000002
+    Env: SuperMarioBros-5-1-v0, Run 10 episodes, Mean: 1301.7300000000002
+    Env: SuperMarioBros-5-2-v0, Run 10 episodes, Mean: 1092.7500000000005
+    Env: SuperMarioBros-5-3-v0, Run 10 episodes, Mean: 533.6999999999998
+    Env: SuperMarioBros-5-4-v0, Run 10 episodes, Mean: 734.4499999999999
+    Env: SuperMarioBros-6-1-v0, Run 10 episodes, Mean: 1940.1900000000019
+    Env: SuperMarioBros-6-2-v0, Run 10 episodes, Mean: 645.4399999999998
+    Env: SuperMarioBros-6-3-v0, Run 10 episodes, Mean: 640.0099999999998
+    Env: SuperMarioBros-6-4-v0, Run 10 episodes, Mean: 864.8100000000001
+    Env: SuperMarioBros-7-1-v0, Run 10 episodes, Mean: 1228.5000000000007
+    Env: SuperMarioBros-7-2-v0, Run 10 episodes, Mean: 1199.1500000000005
+    Env: SuperMarioBros-7-3-v0, Run 10 episodes, Mean: 1168.9500000000003
+    Env: SuperMarioBros-7-4-v0, Run 10 episodes, Mean: 305.9
+    Env: SuperMarioBros-8-1-v0, Run 10 episodes, Mean: 817.8
+    Env: SuperMarioBros-8-2-v0, Run 10 episodes, Mean: 507.5999999999999
+    Env: SuperMarioBros-8-3-v0, Run 10 episodes, Mean: 1119.13
+    Env: SuperMarioBros-8-4-v0, Run 10 episodes, Mean: 2574.450000000001
+    ```
 4. Testing A2C trained on the **world 1** for **all worlds**:
     ```
     Env: SuperMarioBros-1-1-v0, Run 10 episodes, Mean: 2240.850000000001
@@ -353,5 +401,7 @@ $ pip install gym-super-mario-bros cloudpickle
 
 * Comparison between the two environments
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_A2Cs.png" width="100%">
+
+<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/reward_episode_A2Cs_4.png" width="100%">
 
 ###### tags: `NTU` `ADL` `2019`
