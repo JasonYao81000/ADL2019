@@ -262,7 +262,7 @@ $ pip install gym-super-mario-bros cloudpickle
     <details><summary>CLICK ME</summary>
     <p>
 
-    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-1-1-1/openaigym.video.0.20588.video000008.gif">
+    <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-1-1/openaigym.video.0.20588.video000000.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-1-1/openaigym.video.0.20588.video000001.gif">  <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-1-1/openaigym.video.0.20588.video000008.gif">
     
     </p>
     </details>
