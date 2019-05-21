@@ -63,7 +63,7 @@ def run(args):
         env = Environment('SuperMarioBros-v0', args, test=True)
         from agent_dir.agent_mario import AgentMario
         agent = AgentMario(env, args)
-        test(agent, env, total_episodes=10)
+        test(agent, env, total_episodes=5)
 
 if __name__ == '__main__':
     args = parse()

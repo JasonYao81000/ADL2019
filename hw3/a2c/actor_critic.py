@@ -68,13 +68,69 @@ class ActorCritic(nn.Module):
             hiddens: hidden states of last step -> (n_processes, hidden_size)
         '''
         # TODO
-        x = x.view(int(x.size(0)/hiddens.size(0)), hiddens.size(0), -1)
         # step 1: Unflatten the tensors to (n_steps, n_processes, -1) 
         # step 2: Run a for loop through time to forward rnn
         # step 3: Flatten the outputs
         # HINT: You must set hidden states to zeros when masks == 0 in the loop 
-       
+        if x.size(0) == hiddens.size(0):
+            x, hiddens = self.rnn(x.unsqueeze(0), (hiddens * masks).unsqueeze(0))
+            x = x.squeeze(0)
+            hiddens = hiddens.squeeze(0)
+        else:
+            # x is a (T, N, -1) tensor that has been flatten to (T * N, -1)
+            n_processes = hiddens.size(0)
+            n_steps = int(x.size(0) / n_processes)
+
+            # unflatten
+            x = x.view(n_steps, n_processes, x.size(1))
+
+            # Same deal with masks
+            masks = masks.view(n_steps, n_processes)
+
+            # Let's figure out which steps in the sequence have a zero for any agent
+            # We will always assume t=0 has a zero in it as that makes the logic cleaner
+            has_zeros = ((masks[1:] == 0.0) \
+                            .any(dim=-1)
+                            .nonzero()
+                            .squeeze()
+                            .cpu())
+
+
+            # +1 to correct the masks[1:]
+            if has_zeros.dim() == 0:
+                # Deal with scalar
+                has_zeros = [has_zeros.item() + 1]
+            else:
+                has_zeros = (has_zeros + 1).numpy().tolist()
+
+            # add t=0 and t=T to the list
+            has_zeros = [0] + has_zeros + [n_steps]
+
+
+            hiddens = hiddens.unsqueeze(0)
+            outputs = []
+            for i in range(len(has_zeros) - 1):
+                # We can now process steps that don't have any zeros in masks together!
+                # This is much faster
+                start_idx = has_zeros[i]
+                end_idx = has_zeros[i + 1]
+
+                rnn_scores, hiddens = self.rnn(
+                    x[start_idx:end_idx],
+                    hiddens * masks[start_idx].view(1, -1, 1)
+                )
+
+                outputs.append(rnn_scores)
+
+            # assert len(outputs) == T
+            # x is a (T, N, -1) tensor
+            x = torch.cat(outputs, dim=0)
+            # flatten
+            x = x.view(n_steps * n_processes, -1)
+            hiddens = hiddens.squeeze(0)
+
         return x, hiddens
+      
 
     def forward(self, inputs, hiddens, masks):
         x = self.head(inputs / 255.0)

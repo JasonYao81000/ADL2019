@@ -14,5 +14,5 @@ def make_vec_envs(env_name, seed, num_processes):
         make_env(env_name, seed, i)
         for i in range(num_processes)
     ]
-    envs = ShmemVecEnv(envs, context='fork')
+    envs = ShmemVecEnv(envs)
     return envs

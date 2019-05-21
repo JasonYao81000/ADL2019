@@ -109,14 +109,14 @@ class AgentPG(Agent):
                                    action_num= self.env.action_space.n,
                                    hidden_dim=64).to(device)    
             if args.test_pg:
-                self.load('pg_ppo.cpt')
+                self.load('./pg/pg_ppo.cpt')
             self.MseLoss = nn.MSELoss()
         else:
             self.model = PolicyNet(state_dim = self.env.observation_space.shape[0],
                                    action_num= self.env.action_space.n,
                                    hidden_dim=64)
             if args.test_pg:
-                self.load('pg.cpt')
+                self.load('./pg/pg.cpt')
             # discounted reward       
             # optimizer
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)        

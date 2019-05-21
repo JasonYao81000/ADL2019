@@ -136,7 +136,7 @@ class AgentDQN(Agent):
        
 
         if args.test_dqn:
-            self.load(self.model_name)
+            self.load('./dqn/' + self.model_name)
         
         # discounted reward
         self.GAMMA = 0.99  
