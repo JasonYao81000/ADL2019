@@ -14,8 +14,6 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 
 import image_generator
-import resnet
-import dcgan
 
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
@@ -23,25 +21,28 @@ def parse():
                         help='random seed for torch and numpy')
     parser.add_argument('-j', '--workers', default=6, type=int, metavar='N', 
                         help='number of data loading workers (default: 6)')
-    parser.add_argument('--epochs', default=2000, type=int, metavar='N',
+    parser.add_argument('--epochs', default=200, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual step number (useful on restarts)')
-    parser.add_argument('-z', '--z-dim', default=128, type=int, metavar='N',
+    parser.add_argument('-z', '--z-dim', default=100, type=int, metavar='N',
                         help='dimension of z')
     parser.add_argument('--disc-iter', default=5, type=int, metavar='N',
                         help='number of updates to discriminator for every update to generator')
-    parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet',
-                        choices=['dcgan', 'resnet'],
+    parser.add_argument('--arch', '-a', metavar='ARCH', default='acgan',
+                        choices=['acgan', 'wacgan'],
                         help='model architecture: ' +
-                        ' | '.join(['dcgan', 'resnet']) +
-                        ' (default: resnet)')
+                        ' | '.join(['acgan', 'wacgan']) +
+                        ' (default: acgan)')
     parser.add_argument('--loss', default='hinge', type=str,
                         help='loss function')
     parser.add_argument('-b', '--batch_size', default=128, type=int,
                         metavar='N', help='mini-batch size per process (default: 64)')
     parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float,
                         metavar='LR', help='Initial learning rate.')
+    parser.add_argument("--b1", default=0.5, type=float, help="adam: decay of first order momentum of gradient")
+    parser.add_argument("--b2", default=0.999, type=float, help="adam: decay of second order momentum of gradient")
+    parser.add_argument("--clip_value", default=0.01, type=float, help="lower and upper clip value for disc. weights")
     parser.add_argument('--display_freq', '-p', default=100, type=int,
                         metavar='N', help='display frequency (default: 100)')
     parser.add_argument('--image_dir', default='./selected_cartoonset100k', type=str, metavar='PATH',
@@ -87,8 +88,8 @@ def run(args):
         discriminator = resnet.Discriminator().cuda()
         generator = resnet.Generator(args.z_dim).cuda()
     elif args.arch == 'dcgan':
-        discriminator = dcgan.Discriminator().cuda()
-        generator = dcgan.Generator(args.z_dim).cuda()
+        # TODO
+        raise NotImplementedError
     else:
         raise ModuleNotFoundError
     
