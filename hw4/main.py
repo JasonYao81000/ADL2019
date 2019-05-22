@@ -14,6 +14,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 
 import image_generator
+import acgan
 
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
@@ -34,9 +35,9 @@ def parse():
                         help='model architecture: ' +
                         ' | '.join(['acgan', 'wacgan']) +
                         ' (default: acgan)')
-    parser.add_argument('--loss', default='hinge', type=str,
+    parser.add_argument('--loss', default='bce', type=str,
                         help='loss function')
-    parser.add_argument('-b', '--batch_size', default=128, type=int,
+    parser.add_argument('-b', '--batch_size', default=64, type=int,
                         metavar='N', help='mini-batch size per process (default: 64)')
     parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float,
                         metavar='LR', help='Initial learning rate.')
@@ -83,71 +84,109 @@ def run(args):
         num_workers=args.workers,
         shuffle=True, pin_memory=True)
     
-    # Build generator and discriminator
-    if args.arch == 'resnet':
-        discriminator = resnet.Discriminator().cuda()
-        generator = resnet.Generator(args.z_dim).cuda()
-    elif args.arch == 'dcgan':
+    # Loss functions
+    adversarial_loss = torch.nn.BCELoss().cuda()
+    auxiliary_loss = torch.nn.CrossEntropyLoss().cuda()
+
+    # Build generator and discriminator, then initialize weights.
+    if args.arch == 'acgan':
+        generator = acgan.Generator(args.z_dim, datasets).cuda()
+        discriminator = acgan.Discriminator(datasets).cuda()
+        generator.apply(acgan.weights_init_normal)
+        discriminator.apply(acgan.weights_init_normal)
+    elif args.arch == 'wacgan':
         # TODO
         raise NotImplementedError
     else:
         raise ModuleNotFoundError
-    
-    # Because the spectral normalization module creates parameters
-    # that don't require gradients (u and v), we don't want to optimize these using sgd.
-    # We only let the optimizer operate on parameters that _do_ require gradients.
-    # TODO: replace Parameters with buffers, which aren't returned from .parameters() method.
-    optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.5, 0.9))
-    optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.5, 0.9))
 
-    # Use an exponentially decaying learning rate
-    scheduler_d = optim.lr_scheduler.ExponentialLR(optim_disc, gamma=0.99)
-    scheduler_g = optim.lr_scheduler.ExponentialLR(optim_gen, gamma=0.99)
+    # Optimizers
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
 
     # The fixed z for evaluation
-    fixed_z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
+    fixed_z = Variable(torch.cuda.FloatTensor(
+        np.random.normal(0, 1, 
+        (len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), 
+        args.z_dim))))
 
     for epoch in range(args.start_epoch, args.epochs):
         # Training an epoch
         start_time = time.time()
-        for batch_idx, (images, labels) in enumerate(dataloader):
+        for batch_idx, (images, labels, hair_idxes, eye_idxes, face_idxes, glasses_idxes) in enumerate(dataloader):
             # Skip the last batch
             if images.size(0) != args.batch_size: continue
+            
+            # Adversarial ground truths
+            valid = Variable(torch.cuda.FloatTensor(args.batch_size, 1).fill_(1.0), requires_grad=False)
+            fake = Variable(torch.cuda.FloatTensor(args.batch_size, 1).fill_(0.0), requires_grad=False)
 
-            # Transfer to CUDA
-            images, labels = Variable(images.cuda()), Variable(labels.cuda())
+            # Transfer input to CUDA
+            real_imgs = Variable(images.type(torch.cuda.FloatTensor))
+            labels = Variable(labels.type(torch.cuda.LongTensor))
+            hair_idxes = Variable(hair_idxes.type(torch.cuda.LongTensor))
+            eye_idxes = Variable(eye_idxes.type(torch.cuda.LongTensor))
+            face_idxes = Variable(face_idxes.type(torch.cuda.LongTensor))
+            glasses_idxes = Variable(glasses_idxes.type(torch.cuda.LongTensor))
+
+            # Update the generator
+            optimizer_G.zero_grad()
+            # Sample noise and labels as generator input
+            z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (args.batch_size, args.z_dim))))
+            gen_hair_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_hair), args.batch_size)))
+            gen_eye_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_eye), args.batch_size)))
+            gen_face_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_face), args.batch_size)))
+            gen_glasses_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_glasses), args.batch_size)))
+            # Generate a batch of images
+            gen_imgs = generator(z, gen_hair_idxes, gen_eye_idxes, gen_face_idxes, gen_glasses_idxes)
+            # Loss measures generator's ability to fool the discriminator
+            validity, pred_aux_hair, pred_aux_eye, pred_aux_face, pred_aux_glasses = discriminator(gen_imgs)
+            g_loss = (adversarial_loss(validity, valid) + 
+                (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
+                auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
+                auxiliary_loss(pred_aux_face, gen_face_idxes) + 
+                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes)) / 4) / 2
+            g_loss.backward()
+            optimizer_G.step()
             
             # Update the discriminator
             for _ in range(args.disc_iter):
-                z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
-                optim_disc.zero_grad()
-                optim_gen.zero_grad()
-                if args.loss == 'hinge':
-                    disc_loss = nn.ReLU()(1.0 - discriminator(images)).mean() + nn.ReLU()(1.0 + discriminator(generator(z))).mean()
-                elif args.loss == 'wasserstein':
-                    disc_loss = -discriminator(images).mean() + discriminator(generator(z)).mean()
-                else:
-                    disc_loss = nn.BCEWithLogitsLoss()(discriminator(images), Variable(torch.ones(args.batch_size, 1).cuda())) + \
-                        nn.BCEWithLogitsLoss()(discriminator(generator(z)), Variable(torch.zeros(args.batch_size, 1).cuda()))
-                disc_loss.backward()
-                optim_disc.step()
+                optimizer_D.zero_grad()
+                # Loss for real images
+                real_pred, real_aux_hair, real_aux_eye, real_aux_face, real_aux_glasses = discriminator(real_imgs)
+                d_real_loss = (adversarial_loss(real_pred, valid) + 
+                    (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                    auxiliary_loss(real_aux_eye, eye_idxes) + 
+                    auxiliary_loss(real_aux_face, face_idxes) + 
+                    auxiliary_loss(real_aux_glasses, glasses_idxes)) / 4) / 2
+                # Loss for fake images
+                fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
+                d_fake_loss = (adversarial_loss(fake_pred, fake) + 
+                    (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
+                    auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
+                    auxiliary_loss(fake_aux_face, gen_face_idxes) + 
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes)) / 4) / 2
+                # Total discriminator loss
+                d_loss = (d_real_loss + d_fake_loss) / 2
+                d_loss.backward()
+                optimizer_D.step()
+                # Calculate discriminator accuracy
+                pred_hair = np.concatenate([real_aux_hair.data.cpu().numpy(), fake_aux_hair.data.cpu().numpy()], axis=0)
+                gt_hair = np.concatenate([hair_idxes.data.cpu().numpy(), gen_hair_idxes.data.cpu().numpy()], axis=0)
+                d_acc_hair = np.mean(np.argmax(pred_hair, axis=1) == gt_hair)
+                pred_eye = np.concatenate([real_aux_eye.data.cpu().numpy(), fake_aux_eye.data.cpu().numpy()], axis=0)
+                gt_eye = np.concatenate([eye_idxes.data.cpu().numpy(), gen_eye_idxes.data.cpu().numpy()], axis=0)
+                d_acc_eye = np.mean(np.argmax(pred_eye, axis=1) == gt_eye)
+                pred_face = np.concatenate([real_aux_face.data.cpu().numpy(), fake_aux_face.data.cpu().numpy()], axis=0)
+                gt_face = np.concatenate([face_idxes.data.cpu().numpy(), gen_face_idxes.data.cpu().numpy()], axis=0)
+                d_acc_face = np.mean(np.argmax(pred_face, axis=1) == gt_face)
+                pred_glasses = np.concatenate([real_aux_glasses.data.cpu().numpy(), fake_aux_glasses.data.cpu().numpy()], axis=0)
+                gt_glasses = np.concatenate([glasses_idxes.data.cpu().numpy(), gen_glasses_idxes.data.cpu().numpy()], axis=0)
+                d_acc_glasses = np.mean(np.argmax(pred_glasses, axis=1) == gt_glasses)
 
-            # Update the generator
-            z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
-            optim_disc.zero_grad()
-            optim_gen.zero_grad()
-            if args.loss == 'hinge' or args.loss == 'wasserstein':
-                gen_loss = -discriminator(generator(z)).mean()
-            else:
-                gen_loss = nn.BCEWithLogitsLoss()(discriminator(generator(z)), Variable(torch.ones(args.batch_size, 1).cuda()))
-            gen_loss.backward()
-            optim_gen.step()
-
-            print("Epoch[%d/%d], Step[%d/%d], disc loss: %.6f, gen loss: %.6f, elapsed time: %.2fs" % \
-                (epoch, args.epochs, batch_idx, len(dataloader), disc_loss.item(), gen_loss.item(), time.time() - start_time), end='\r')
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f] [G loss: %.4f] elapsed time: %.2fs" % \
+                (epoch, args.epochs, batch_idx, len(dataloader), d_loss.item(), d_acc_hair, d_acc_eye, d_acc_face, d_acc_glasses, g_loss.item(), time.time() - start_time), end='\r')
         print()
-        scheduler_d.step()
-        scheduler_g.step()
         
         if epoch % args.save_freq == 0:
             print('Saving the last models...')
@@ -156,20 +195,44 @@ def run(args):
         
         if epoch % args.eval_freq == 0:
             print('Evaluating...')
-            samples = generator(fixed_z).cpu().data.numpy()[:64]
-            fig = plt.figure(figsize=(8, 8))
-            gs = gridspec.GridSpec(8, 8)
+            # Generate evaluation attributes
+            eval_hair_idxes = []
+            eval_eye_idxes = []
+            eval_face_idxes = []
+            eval_glasses_idxes = []
+            for hair_idx in range(len(datasets.attr_hair)):
+                for eye_idx in range(len(datasets.attr_eye)):
+                    for face_idx in range(len(datasets.attr_face)):
+                        for glasses_idx in range(len(datasets.attr_glasses)):
+                            eval_hair_idxes.append(hair_idx)
+                            eval_eye_idxes.append(eye_idx)
+                            eval_face_idxes.append(face_idx)
+                            eval_glasses_idxes.append(glasses_idx)
+            # Transfer input to CUDA
+            eval_hair_idxes = Variable(torch.cuda.LongTensor(eval_hair_idxes))
+            eval_eye_idxes = Variable(torch.cuda.LongTensor(eval_eye_idxes))
+            eval_face_idxes = Variable(torch.cuda.LongTensor(eval_face_idxes))
+            eval_glasses_idxes = Variable(torch.cuda.LongTensor(eval_glasses_idxes))
+            with torch.no_grad():
+                gen_imgs = generator(fixed_z, eval_hair_idxes, eval_eye_idxes, eval_face_idxes, eval_glasses_idxes)
+            
+            # Plot the generated images
+            num_samples = int(np.sqrt(len(gen_imgs)) ** 2)
+            ncols = int(np.sqrt(len(gen_imgs)))
+            gen_imgs = gen_imgs.cpu().data.numpy()[:num_samples]
+            fig = plt.figure(figsize=(ncols, ncols))
+            gs = gridspec.GridSpec(ncols, ncols)
             gs.update(wspace=0.05, hspace=0.05)
 
-            for i, sample in enumerate(samples):
+            for i, img in enumerate(gen_imgs):
                 ax = plt.subplot(gs[i])
                 plt.axis('off')
                 ax.set_xticklabels([])
                 ax.set_yticklabels([])
                 ax.set_aspect('equal')
-                plt.imshow(sample.transpose((1, 2, 0)) * 0.5 + 0.5)
+                plt.imshow(img.transpose((1, 2, 0)) * 0.5 + 0.5)
 
-            plt.savefig('{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+            plt.savefig("./sample_test/%d.png" % epoch, bbox_inches='tight')
             plt.close(fig)
 
 def main():

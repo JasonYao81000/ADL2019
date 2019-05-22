@@ -23,6 +23,14 @@ class Dataset(data.Dataset):
                 self.labels.append(np.array(elements[1:]).astype(np.int))
         self.image_ids = np.array(self.image_ids)
         self.labels = np.array(self.labels)
+        self.attr_hair = [x for x in self.attributes if 'hair' in x]
+        self.attr_eye = [x for x in self.attributes if 'eye' in x]
+        self.attr_face = [x for x in self.attributes if 'face' in x]
+        self.attr_glasses = [x for x in self.attributes if 'glasses' in x]
+        self.hairs = self.labels[:, 0:len(self.attr_hair)]
+        self.eyes = self.labels[:, len(self.attr_hair):len(self.attr_hair) + len(self.attr_eye)]
+        self.faces = self.labels[:, len(self.attr_hair) + len(self.attr_eye):len(self.attr_hair) + len(self.attr_eye) + len(self.attr_face)]
+        self.glasses = self.labels[:, len(self.attr_hair) + len(self.attr_eye) + len(self.attr_face):]
         self.image_path = path + '/images/'
 
         self.transform = transforms.Compose([
@@ -40,8 +48,11 @@ class Dataset(data.Dataset):
         # Select sample image and get label
         image_id = self.image_ids[index]
         label = self.labels[index]
-        
+        hair_idx = np.argmax(self.hairs[index])
+        eye_idx = np.argmax(self.eyes[index])
+        face_idx = np.argmax(self.faces[index])
+        glasses_idx = np.argmax(self.glasses[index])
         # Read image and convert to RGB, then apply the transform
         image = Image.open(self.image_path + image_id)
         image = self.transform(image)
-        return image, label
+        return image, label, hair_idx, eye_idx, face_idx, glasses_idx
