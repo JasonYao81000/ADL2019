@@ -11,6 +11,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 
 import image_generator
+import resnet
 
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
@@ -76,6 +77,27 @@ def run(args):
         num_workers=args.workers,
         shuffle=True, pin_memory=True)
     
+    # Build generator and discriminator
+    if args.arch == 'resnet':
+        discriminator = resnet.Discriminator().cuda()
+        generator = resnet.Generator(args.z_dim).cuda()
+    elif args.arch == 'dcgan':
+        # TODO
+        raise NotImplementedError
+    else:
+        raise ModuleNotFoundError
+    
+    # Because the spectral normalization module creates parameters
+    # that don't require gradients (u and v), we don't want to optimize these using sgd.
+    # We only let the optimizer operate on parameters that _do_ require gradients.
+    # TODO: replace Parameters with buffers, which aren't returned from .parameters() method.
+    optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.0,0.9))
+    optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0,0.9))
+
+    # Use an exponentially decaying learning rate
+    scheduler_d = optim.lr_scheduler.ExponentialLR(optim_disc, gamma=0.99)
+    scheduler_g = optim.lr_scheduler.ExponentialLR(optim_gen, gamma=0.99)
+
     for batch_idx, (data, target) in enumerate(dataloader):
         print(batch_idx, data.shape, target.shape)
         import matplotlib.pyplot as plt
