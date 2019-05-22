@@ -10,6 +10,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
+import image_generator
+
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
     parser.add_argument('--seed', type=int, default=9487,
@@ -37,6 +39,8 @@ def parse():
                         metavar='LR', help='Initial learning rate.')
     parser.add_argument('--display_freq', '-p', default=100, type=int,
                         metavar='N', help='display frequency (default: 100)')
+    parser.add_argument('--image_dir', default='./selected_cartoonset100k', type=str, metavar='PATH',
+                        help='path to images folder')
     parser.add_argument('--ckpt_dir', default='./checkpoints', type=str, metavar='PATH',
                         help='path to checkpoints folder')
     parser.add_argument('--resume', default='last.ckpt', type=str, metavar='PATH',
@@ -64,7 +68,20 @@ def run(args):
     if not os.path.exists(args.ckpt_dir):
         os.makedirs(args.ckpt_dir)
 
-    print(args)
+    # Create image generator for cartoon dataset.
+    datasets = image_generator.Dataset(args.image_dir, args.seed)
+    dataloader = torch.utils.data.DataLoader(
+        datasets, 
+        batch_size=args.batch_size,
+        num_workers=args.workers,
+        shuffle=True, pin_memory=True)
+    
+    for batch_idx, (data, target) in enumerate(dataloader):
+        print(batch_idx, data.shape, target.shape)
+        import matplotlib.pyplot as plt
+        plt.imshow(data[0].cpu().data.numpy().transpose((1, 2, 0)) * 0.5 + 0.5)
+        plt.savefig('1.png')
+        exit()
 
 def main():
     # Parse command line and run
