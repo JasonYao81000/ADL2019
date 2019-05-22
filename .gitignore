@@ -130,3 +130,8 @@ hw2/model/*/log.csv
 hw2/ELMo/output/*
 hw2/ensemble/csv/*/*
 hw2/ensemble/*.csv
+
+# hw4
+hw4/FID_evaluation/*.tar.gz
+hw4/FID_evaluation/*.npy
+hw4/selected_cartoonset100k/images/*
