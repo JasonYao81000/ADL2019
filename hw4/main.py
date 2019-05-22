@@ -1,6 +1,9 @@
 import argparse
 import os
+import time
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 import torch
 import torch.nn as nn
@@ -12,6 +15,7 @@ from torch.autograd import Variable
 
 import image_generator
 import resnet
+import dcgan
 
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
@@ -34,7 +38,7 @@ def parse():
                         ' (default: resnet)')
     parser.add_argument('--loss', default='hinge', type=str,
                         help='loss function')
-    parser.add_argument('-b', '--batch_size', default=64, type=int,
+    parser.add_argument('-b', '--batch_size', default=128, type=int,
                         metavar='N', help='mini-batch size per process (default: 64)')
     parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float,
                         metavar='LR', help='Initial learning rate.')
@@ -51,6 +55,7 @@ def parse():
     parser.add_argument('--ckpt_best', default='best.ckpt', type=str, metavar='PATH',
                         help='path to the best checkpoint (default: best.ckpt)')
     parser.add_argument('--save_freq', type=int, default=1, help='saving last model frequency')
+    parser.add_argument('--eval_freq', type=int, default=1, help='evaluation frequency')
     parser.add_argument('--gpu', type=int, default=[0], nargs='+', help='used gpu')
     parser.add_argument('--mode', default='train', choices=['train', 'test_fid', 'test_human'],
                         help='mode: ' + ' | '.join(['train', 'test_fid', 'test_human']) + ' (default: train)')
@@ -82,8 +87,8 @@ def run(args):
         discriminator = resnet.Discriminator().cuda()
         generator = resnet.Generator(args.z_dim).cuda()
     elif args.arch == 'dcgan':
-        # TODO
-        raise NotImplementedError
+        discriminator = dcgan.Discriminator().cuda()
+        generator = dcgan.Generator(args.z_dim).cuda()
     else:
         raise ModuleNotFoundError
     
@@ -91,14 +96,19 @@ def run(args):
     # that don't require gradients (u and v), we don't want to optimize these using sgd.
     # We only let the optimizer operate on parameters that _do_ require gradients.
     # TODO: replace Parameters with buffers, which aren't returned from .parameters() method.
-    optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.0,0.9))
-    optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0,0.9))
+    optim_disc = optim.Adam(filter(lambda p: p.requires_grad, discriminator.parameters()), lr=args.lr, betas=(0.5, 0.9))
+    optim_gen  = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.5, 0.9))
 
     # Use an exponentially decaying learning rate
     scheduler_d = optim.lr_scheduler.ExponentialLR(optim_disc, gamma=0.99)
     scheduler_g = optim.lr_scheduler.ExponentialLR(optim_gen, gamma=0.99)
 
+    # The fixed z for evaluation
+    fixed_z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
+
     for epoch in range(args.start_epoch, args.epochs):
+        # Training an epoch
+        start_time = time.time()
         for batch_idx, (images, labels) in enumerate(dataloader):
             # Skip the last batch
             if images.size(0) != args.batch_size: continue
@@ -132,16 +142,34 @@ def run(args):
             gen_loss.backward()
             optim_gen.step()
 
-            print("Epoch[%d/%d], Step[%d/%d], disc loss: %.6f, gen loss: %.6f" % \
-                (epoch, args.epochs, batch_idx, len(dataloader), disc_loss.item(), gen_loss.item()), end='\r')
+            print("Epoch[%d/%d], Step[%d/%d], disc loss: %.6f, gen loss: %.6f, elapsed time: %.2fs" % \
+                (epoch, args.epochs, batch_idx, len(dataloader), disc_loss.item(), gen_loss.item(), time.time() - start_time), end='\r')
         print()
         scheduler_d.step()
         scheduler_g.step()
         
         if epoch % args.save_freq == 0:
             print('Saving the last models...')
-            torch.save(discriminator.state_dict(), os.path.join(args.checkpoint_dir, 'disc_' + args.ckpt_last))
-            torch.save(generator.state_dict(), os.path.join(args.checkpoint_dir, 'gen_' + args.ckpt_last))
+            torch.save(discriminator.state_dict(), os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last))
+            torch.save(generator.state_dict(), os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last))
+        
+        if epoch % args.eval_freq == 0:
+            print('Evaluating...')
+            samples = generator(fixed_z).cpu().data.numpy()[:64]
+            fig = plt.figure(figsize=(8, 8))
+            gs = gridspec.GridSpec(8, 8)
+            gs.update(wspace=0.05, hspace=0.05)
+
+            for i, sample in enumerate(samples):
+                ax = plt.subplot(gs[i])
+                plt.axis('off')
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
+                ax.set_aspect('equal')
+                plt.imshow(sample.transpose((1, 2, 0)) * 0.5 + 0.5)
+
+            plt.savefig('{}.png'.format(str(epoch).zfill(3)), bbox_inches='tight')
+            plt.close(fig)
 
 def main():
     # Parse command line and run
