@@ -98,12 +98,50 @@ def run(args):
     scheduler_d = optim.lr_scheduler.ExponentialLR(optim_disc, gamma=0.99)
     scheduler_g = optim.lr_scheduler.ExponentialLR(optim_gen, gamma=0.99)
 
-    for batch_idx, (data, target) in enumerate(dataloader):
-        print(batch_idx, data.shape, target.shape)
-        import matplotlib.pyplot as plt
-        plt.imshow(data[0].cpu().data.numpy().transpose((1, 2, 0)) * 0.5 + 0.5)
-        plt.savefig('1.png')
-        exit()
+    for epoch in range(args.start_epoch, args.epochs):
+        for batch_idx, (images, labels) in enumerate(dataloader):
+            # Skip the last batch
+            if images.size(0) != args.batch_size: continue
+
+            # Transfer to CUDA
+            images, labels = Variable(images.cuda()), Variable(labels.cuda())
+            
+            # Update the discriminator
+            for _ in range(args.disc_iter):
+                z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
+                optim_disc.zero_grad()
+                optim_gen.zero_grad()
+                if args.loss == 'hinge':
+                    disc_loss = nn.ReLU()(1.0 - discriminator(images)).mean() + nn.ReLU()(1.0 + discriminator(generator(z))).mean()
+                elif args.loss == 'wasserstein':
+                    disc_loss = -discriminator(images).mean() + discriminator(generator(z)).mean()
+                else:
+                    disc_loss = nn.BCEWithLogitsLoss()(discriminator(images), Variable(torch.ones(args.batch_size, 1).cuda())) + \
+                        nn.BCEWithLogitsLoss()(discriminator(generator(z)), Variable(torch.zeros(args.batch_size, 1).cuda()))
+                disc_loss.backward()
+                optim_disc.step()
+
+            # Update the generator
+            z = Variable(torch.randn(args.batch_size, args.z_dim).cuda())
+            optim_disc.zero_grad()
+            optim_gen.zero_grad()
+            if args.loss == 'hinge' or args.loss == 'wasserstein':
+                gen_loss = -discriminator(generator(z)).mean()
+            else:
+                gen_loss = nn.BCEWithLogitsLoss()(discriminator(generator(z)), Variable(torch.ones(args.batch_size, 1).cuda()))
+            gen_loss.backward()
+            optim_gen.step()
+
+            print("Epoch[%d/%d], Step[%d/%d], disc loss: %.6f, gen loss: %.6f" % \
+                (epoch, args.epochs, batch_idx, len(dataloader), disc_loss.item(), gen_loss.item()), end='\r')
+        print()
+        scheduler_d.step()
+        scheduler_g.step()
+        
+        if epoch % args.save_freq == 0:
+            print('Saving the last models...')
+            torch.save(discriminator.state_dict(), os.path.join(args.checkpoint_dir, 'disc_' + args.ckpt_last))
+            torch.save(generator.state_dict(), os.path.join(args.checkpoint_dir, 'gen_' + args.ckpt_last))
 
 def main():
     # Parse command line and run
