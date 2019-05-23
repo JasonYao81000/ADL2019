@@ -12,7 +12,7 @@ class Generator(nn.Module):
     def __init__(self, opt):
         super(Generator, self).__init__()
 
-        self.label_emb = nn.Embedding(opt.n_classes, opt.latent_dim)
+        self.label_emb = nn.Linear(opt.n_classes, opt.latent_dim, bias=False)
 
         self.init_size = opt.img_size // 4  # Initial size before upsampling
         self.l1 = nn.Sequential(nn.Linear(opt.latent_dim, 128 * self.init_size ** 2))

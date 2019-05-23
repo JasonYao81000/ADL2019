@@ -17,7 +17,9 @@ class Dataset(data.Dataset):
         list_IDs = []
         labels = []
         self.root = root
-        self.transform = transforms.Compose([transforms.ToTensor()])
+        self.transform = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
+                                             transforms.ToTensor(),
+                                             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         with open(self.root + 'cartoon_attr.txt', encoding="utf-8") as f:
             lines = f.readlines()
         lines = lines[2:]
