@@ -30,6 +30,7 @@ def weights_init_normal(m):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default='./selected_cartoonset100k/', help="data path")
+    parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
     parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
     parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
@@ -47,6 +48,7 @@ def main():
     
     cuda = True if torch.cuda.is_available() else False
     
+    os.makedirs(opt.ckpt_dir, exist_ok=True)
     
     # Loss functions
     adversarial_loss = torch.nn.BCELoss()
@@ -181,6 +183,9 @@ def main():
             batches_done = epoch * len(dataloader) + i
             if batches_done % opt.sample_interval == 0:
                 sample_image(n_row=8, batches_done=batches_done)
+                
+        torch.save(generator, opt.ckpt_dir + 'generator.cpt')
+        torch.save(discriminator, opt.ckpt_dir + 'discriminator.cpt')
 
 
 if __name__ == '__main__':
