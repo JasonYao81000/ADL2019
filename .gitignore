@@ -136,3 +136,4 @@ hw4/FID_evaluation/*.tar.gz
 hw4/FID_evaluation/*.npy
 hw4/selected_cartoonset100k/images/*
 hw4/eval_images/*.png
+hw4/sample_test/images/*.png

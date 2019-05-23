@@ -47,10 +47,12 @@ def parse():
                         metavar='N', help='display frequency (default: 100)')
     parser.add_argument('--image_dir', default='./selected_cartoonset100k', type=str, metavar='PATH',
                         help='path to images folder')
-    parser.add_argument('--eval_dir', default='./eval_images', type=str, metavar='PATH',
-                        help='path to evaluation folder')
     parser.add_argument('--ckpt_dir', default='./checkpoints', type=str, metavar='PATH',
                         help='path to checkpoints folder')
+    parser.add_argument('--eval_dir', default='./eval_images', type=str, metavar='PATH',
+                        help='path to evaluation folder')
+    parser.add_argument('--test_image_dir', default='./sample_test/images', type=str, metavar='PATH',
+                        help='path to test images folder')
     parser.add_argument('--resume', default='last.ckpt', type=str, metavar='PATH',
                         help='path to the latest checkpoint (default: last.ckpt)')
     parser.add_argument('--ckpt_last', default='last.ckpt', type=str, metavar='PATH',
@@ -59,6 +61,7 @@ def parse():
                         help='path to the best checkpoint (default: best.ckpt)')
     parser.add_argument('--save_freq', type=int, default=1, help='saving last model frequency')
     parser.add_argument('--eval_freq', type=int, default=1, help='evaluation frequency')
+    parser.add_argument('--test_fid_freq', type=int, default=1, help='testing fid frequency')
     parser.add_argument('--gpu', type=int, default=[0], nargs='+', help='used gpu')
     parser.add_argument('--mode', default='train', choices=['train', 'test_fid', 'test_human'],
                         help='mode: ' + ' | '.join(['train', 'test_fid', 'test_human']) + ' (default: train)')
@@ -68,16 +71,37 @@ def parse():
     args = parser.parse_args()
     return args
 
+def test_fid(args, generator, discriminator, test_dataloader):
+    image_idx = 0
+    for batch_idx, (labels, hair_idxes, eye_idxes, face_idxes, glasses_idxes) in enumerate(test_dataloader):
+        batch_size = labels.size(0)
+        # Transfer input to CUDA
+        labels = Variable(labels.type(torch.cuda.LongTensor))
+        hair_idxes = Variable(hair_idxes.type(torch.cuda.LongTensor))
+        eye_idxes = Variable(eye_idxes.type(torch.cuda.LongTensor))
+        face_idxes = Variable(face_idxes.type(torch.cuda.LongTensor))
+        glasses_idxes = Variable(glasses_idxes.type(torch.cuda.LongTensor))
+        # Sample noise as generator input
+        z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
+        # Generate a batch of images
+        gen_imgs = generator(z, hair_idxes, eye_idxes, face_idxes, glasses_idxes)
+        # Plot the generated images
+        for img in gen_imgs:
+            save_image(img, args.test_image_dir + '/%d.png' % (image_idx), normalize=True, range=(-1, 1))
+            image_idx += 1
+
 def run(args):
     # Fix the random seeds
     np.random.seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
 
-    # Create checkpoints and evaluation folder if it does not exist
+    # Create folder if it does not exist
     if not os.path.exists(args.ckpt_dir):
         os.makedirs(args.ckpt_dir)
     if not os.path.exists(args.eval_dir):
         os.makedirs(args.eval_dir)
+    if not os.path.exists(args.test_image_dir):
+        os.makedirs(args.test_image_dir)
 
     # Create image generator for cartoon dataset.
     datasets = image_generator.Dataset(args.image_dir, args.seed)
@@ -102,6 +126,25 @@ def run(args):
         raise NotImplementedError
     else:
         raise ModuleNotFoundError
+
+    if args.mode == 'test_fid':
+        print('Loading generator from', os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last), '...')
+        generator.load_state_dict(torch.load(os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last)))
+        generator.eval()
+        print('Loading discriminator from', os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last), '...')
+        discriminator.load_state_dict(torch.load(os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last)))
+        discriminator.eval()
+        print('Creating test data loader...')
+        test_datasets = image_generator.Dataset(args.test_fid_file, args.seed, test=True)
+        test_dataloader = torch.utils.data.DataLoader(
+            test_datasets, 
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            shuffle=True, pin_memory=True)
+        test_fid(args, generator, discriminator, test_dataloader)
+        return
+    elif args.mode == 'test_human':
+        raise NotImplementedError
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
