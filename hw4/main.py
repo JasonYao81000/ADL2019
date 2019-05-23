@@ -2,8 +2,6 @@ import argparse
 import os
 import time
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 
 import torch
 import torch.nn as nn
@@ -12,6 +10,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ExponentialLR
 from torchvision import datasets, transforms
 from torch.autograd import Variable
+from torchvision.utils import save_image
 
 import image_generator
 import acgan
@@ -48,6 +47,8 @@ def parse():
                         metavar='N', help='display frequency (default: 100)')
     parser.add_argument('--image_dir', default='./selected_cartoonset100k', type=str, metavar='PATH',
                         help='path to images folder')
+    parser.add_argument('--eval_dir', default='./eval_images', type=str, metavar='PATH',
+                        help='path to evaluation folder')
     parser.add_argument('--ckpt_dir', default='./checkpoints', type=str, metavar='PATH',
                         help='path to checkpoints folder')
     parser.add_argument('--resume', default='last.ckpt', type=str, metavar='PATH',
@@ -72,9 +73,11 @@ def run(args):
     np.random.seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
 
-    # Create checkpoints folder if it does not exist
+    # Create checkpoints and evaluation folder if it does not exist
     if not os.path.exists(args.ckpt_dir):
         os.makedirs(args.ckpt_dir)
+    if not os.path.exists(args.eval_dir):
+        os.makedirs(args.eval_dir)
 
     # Create image generator for cartoon dataset.
     datasets = image_generator.Dataset(args.image_dir, args.seed)
@@ -110,9 +113,22 @@ def run(args):
         (len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), 
         args.z_dim))))
 
+    epoch_g_losses = []
+    epoch_d_losses = []
+    epoch_d_acc_hair = []
+    epoch_d_acc_eye = []
+    epoch_d_acc_face = []
+    epoch_d_acc_glasses = []
+    epoch_time = []
     for epoch in range(args.start_epoch, args.epochs):
         # Training an epoch
         start_time = time.time()
+        batch_g_losses = []
+        batch_d_losses = []
+        batch_d_accs_hair = []
+        batch_d_accs_eye = []
+        batch_d_accs_face = []
+        batch_d_accs_glasses = []
         for batch_idx, (images, labels, hair_idxes, eye_idxes, face_idxes, glasses_idxes) in enumerate(dataloader):
             # Skip the last batch
             if images.size(0) != args.batch_size: continue
@@ -184,14 +200,45 @@ def run(args):
                 gt_glasses = np.concatenate([glasses_idxes.data.cpu().numpy(), gen_glasses_idxes.data.cpu().numpy()], axis=0)
                 d_acc_glasses = np.mean(np.argmax(pred_glasses, axis=1) == gt_glasses)
 
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f] [G loss: %.4f] elapsed time: %.2fs" % \
-                (epoch, args.epochs, batch_idx, len(dataloader), d_loss.item(), d_acc_hair, d_acc_eye, d_acc_face, d_acc_glasses, g_loss.item(), time.time() - start_time), end='\r')
+            # Collect the training log for a batch
+            batch_g_losses.append(g_loss.item())
+            batch_d_losses.append(d_loss.item())
+            batch_d_accs_hair.append(d_acc_hair)
+            batch_d_accs_eye.append(d_acc_eye)
+            batch_d_accs_face.append(d_acc_face)
+            batch_d_accs_glasses.append(d_acc_glasses)
+            batch_g_loss = sum(batch_g_losses) / len(batch_g_losses)
+            batch_d_loss = sum(batch_d_losses) / len(batch_d_losses)
+            batch_d_acc_hair = sum(batch_d_accs_hair) / len(batch_d_accs_hair)
+            batch_d_acc_eye = sum(batch_d_accs_eye) / len(batch_d_accs_eye)
+            batch_d_acc_face = sum(batch_d_accs_face) / len(batch_d_accs_face)
+            batch_d_acc_glasses = sum(batch_d_accs_glasses) / len(batch_d_accs_glasses)
+            batch_time = time.time() - start_time
+
+            print("[Epoch %d/%d][Batch %d/%d][D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f][G loss: %.4f][elapsed time: %.2fs]" % \
+                (epoch, args.epochs, batch_idx, len(dataloader), batch_d_loss, batch_d_acc_hair, batch_d_acc_eye, batch_d_acc_face, batch_d_acc_glasses, batch_g_loss, batch_time), end='\r')
         print()
         
+        # Collect the training log for an epoch
+        epoch_g_losses.append(batch_g_loss)
+        epoch_d_losses.append(batch_d_loss)
+        epoch_d_acc_hair.append(batch_d_acc_hair)
+        epoch_d_acc_eye.append(batch_d_acc_eye)
+        epoch_d_acc_face.append(batch_d_acc_face)
+        epoch_d_acc_glasses.append(batch_d_acc_glasses)
+        epoch_time.append(batch_time)
+
         if epoch % args.save_freq == 0:
             print('Saving the last models...')
             torch.save(discriminator.state_dict(), os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last))
             torch.save(generator.state_dict(), os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_g_losses.npy'), np.array(epoch_g_losses))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_d_losses.npy'), np.array(epoch_d_losses))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_d_acc_hair.npy'), np.array(epoch_d_acc_hair))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_d_acc_eye.npy'), np.array(epoch_d_acc_eye))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_d_acc_face.npy'), np.array(epoch_d_acc_face))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_d_acc_glasses.npy'), np.array(epoch_d_acc_glasses))
+            np.save(os.path.join(args.ckpt_dir, 'epoch_time.npy'), np.array(epoch_time))
         
         if epoch % args.eval_freq == 0:
             print('Evaluating...')
@@ -217,23 +264,11 @@ def run(args):
                 gen_imgs = generator(fixed_z, eval_hair_idxes, eval_eye_idxes, eval_face_idxes, eval_glasses_idxes)
             
             # Plot the generated images
-            num_samples = int(np.sqrt(len(gen_imgs)) ** 2)
-            ncols = int(np.sqrt(len(gen_imgs)))
-            gen_imgs = gen_imgs.cpu().data.numpy()[:num_samples]
-            fig = plt.figure(figsize=(ncols, ncols))
-            gs = gridspec.GridSpec(ncols, ncols)
-            gs.update(wspace=0.05, hspace=0.05)
-
-            for i, img in enumerate(gen_imgs):
-                ax = plt.subplot(gs[i])
-                plt.axis('off')
-                ax.set_xticklabels([])
-                ax.set_yticklabels([])
-                ax.set_aspect('equal')
-                plt.imshow(img.transpose((1, 2, 0)) * 0.5 + 0.5)
-
-            plt.savefig("./sample_test/%d.png" % epoch, bbox_inches='tight')
-            plt.close(fig)
+            nrow = int(np.sqrt(len(gen_imgs)))
+            num_samples = int(nrow ** 2)
+            save_image(gen_imgs[:num_samples], 
+                args.eval_dir + '/%d.png' % (epoch), 
+                nrow=nrow, normalize=True, range=(-1, 1))
 
 def main():
     # Parse command line and run
