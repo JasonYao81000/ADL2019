@@ -13,9 +13,10 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
 
         self.label_emb = nn.Linear(opt.n_classes, opt.latent_dim, bias=False)
+        self.hidden_cat = nn.Linear(opt.latent_dim, opt.latent_dim, bias=False)
 
         self.init_size = opt.img_size // 4  # Initial size before upsampling
-        self.l1 = nn.Sequential(nn.Linear(opt.latent_dim, 128 * self.init_size ** 2))
+        self.l1 = nn.Sequential(nn.Linear(opt.latent_dim + opt.n_classes, 128 * self.init_size ** 2))
 
         self.conv_blocks = nn.Sequential(
             nn.BatchNorm2d(128),
@@ -32,7 +33,8 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise, labels):
-        gen_input = torch.mul(self.label_emb(labels), noise)
+        hidden = self.hidden_cat(noise)
+        gen_input = torch.cat((labels, hidden), dim=-1)
         out = self.l1(gen_input)
         out = out.view(out.shape[0], 128, self.init_size, self.init_size)
         img = self.conv_blocks(out)

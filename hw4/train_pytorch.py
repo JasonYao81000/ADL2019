@@ -15,9 +15,12 @@ import torch
 from models import Generator, Discriminator
 from loaddata import Dataset 
 
+import torch.backends.cudnn as cudnn
+cudnn.benchmark = True
 
 os.makedirs("images", exist_ok=True)
 os.makedirs("test_images", exist_ok=True)
+os.makedirs("test_images_fid", exist_ok=True)
     
 def weights_init_normal(m):
     classname = m.__class__.__name__
@@ -32,11 +35,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default='./selected_cartoonset100k/', help="data path")
     parser.add_argument("--test_path", type=str, default='./sample_test/', help="test path")
+    parser.add_argument("--mode", choices=['fid', 'human'], default='fid', help="test choices")
     parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
     parser.add_argument("--test", action='store_true', default=False, help="test")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
     parser.add_argument("--n_epochs", type=int, default=1000, help="number of epochs of training")
-    parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
+    parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
     parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
@@ -82,7 +86,16 @@ def main():
         generator.eval()
         discriminator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'discriminator.cpt')))
         discriminator.eval()
-        dataset = Dataset(opt.test, opt.test_path)       
+        if opt.mode == 'human':
+            test_path = opt.test_path + 'sample_human_testing_labels.txt'
+            image_dir = "./test_images/"
+        elif opt.mode == 'fid':
+            test_path = opt.test_path + 'sample_fid_testing_labels.txt'
+            image_dir = "./test_images_fid/"
+        else:
+            print('no mode is chosen')
+            return
+        dataset = Dataset(opt.test, test_path)       
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
                                              shuffle=False, num_workers=opt.num_workers)
         sample_index = 0
@@ -93,9 +106,10 @@ def main():
             # Generate a batch of images
             gen_imgs = generator(z, labels)
             for img in gen_imgs:
-                save_image(img, "test_images/%d.png" % (sample_index), normalize=True, range=(-1, 1))
+                save_image(img, image_dir + "%d.png" % (sample_index), normalize=True, range=(-1, 1))
                 sample_index += 1
-        os.system('python ./sample_test/merge_images.py ' + './test_images/')
+        if opt.mode == 'human':
+            os.system('python ./sample_test/merge_images.py ' + './test_images/')
         return
     
 
@@ -106,29 +120,46 @@ def main():
     
     def sample_image(n_row, batches_done):
         """Saves a grid of generated digits ranging from 0 to n_classes"""
+        batch_size = n_row ** 2
         # Sample noise
         z = Variable(FloatTensor(np.random.normal(0, 1, (n_row ** 2, opt.latent_dim))))
         
-        hair = np.random.randint(0, 6, batch_size)
-        eyes = np.random.randint(6, 10, batch_size)
-        face = np.random.randint(10, 13, batch_size)
-        glasses = np.random.randint(13, 15, batch_size)
+        eval_hair_idxes = []
+        eval_eye_idxes = []
+        eval_face_idxes = []
+        eval_glasses_idxes = []
+        for hair_idx in range(0,6):
+            for eye_idx in range(6,10):
+                for face_idx in range(10,13):
+                    for glasses_idx in range(13,15):
+                        eval_hair_idxes.append(hair_idx)
+                        eval_eye_idxes.append(eye_idx)
+                        eval_face_idxes.append(face_idx)
+                        eval_glasses_idxes.append(glasses_idx)
         
         gen_labels = np.zeros((batch_size,15))
-        gen_labels[np.arange(batch_size), hair] = 1
-        gen_labels[np.arange(batch_size), eyes] = 1
-        gen_labels[np.arange(batch_size), face] = 1
-        gen_labels[np.arange(batch_size), glasses] = 1
+        gen_labels[np.arange(batch_size), eval_hair_idxes] = 1
+        gen_labels[np.arange(batch_size), eval_eye_idxes] = 1
+        gen_labels[np.arange(batch_size), eval_face_idxes] = 1
+        gen_labels[np.arange(batch_size), eval_glasses_idxes] = 1
         gen_labels = Variable(FloatTensor(gen_labels))
         gen_imgs = generator(z, gen_labels)
         save_image(gen_imgs.data, "images/%d.png" % batches_done, nrow=n_row, normalize=True)
+        gen_labels = gen_labels.tolist()
+        with open('./images/' + '%d.txt' % batches_done, 'w') as f:
+            for line in gen_labels:
+                s = [str(i) for i in line]  
+                res = " ".join(s)
+                f.writelines(res)
         
     
     # ----------
     #  Training
     # ----------
     
-
+    generator.train()
+    discriminator.train()
+        
     # Configure data loader
     #os.makedirs("../../data/mnist", exist_ok=True)
     dataset = Dataset(opt.test, opt.data_path)
@@ -199,18 +230,24 @@ def main():
             # Calculate discriminator accuracy
             pred = np.concatenate([real_aux.data.cpu().numpy(), fake_aux.data.cpu().numpy()], axis=0)
             gt = np.concatenate([labels.data.cpu().numpy(), gen_labels.data.cpu().numpy()], axis=0)
-            d_acc = np.mean(np.argmax(pred, axis=1) == gt)
+            acc_hair = np.argmax(pred[0:6], axis=1) == gt[0:6]
+            acc_eyes = np.argmax(pred[6:10], axis=1) == gt[6:10]
+            acc_face = np.argmax(pred[10:13], axis=1) == gt[10:13]
+            acc_glasses = np.argmax(pred[13:15], axis=1) == gt[13:15]
+            d_acc = np.mean(acc_hair + acc_eyes + acc_face + acc_glasses)
     
             d_loss.backward()
             optimizer_D.step()
     
             print(
                 "[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %d%%] [G loss: %f]"
-                % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), 100 * d_acc, g_loss.item())
+                % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), 100 * d_acc, g_loss.item()), end="\r"
             )
             batches_done = epoch * len(dataloader) + i
             if batches_done % opt.sample_interval == 0:
-                sample_image(n_row=8, batches_done=batches_done)
+                sample_image(n_row=12, batches_done=batches_done)
+        
+        print()
                 
         torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
         torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')

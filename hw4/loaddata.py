@@ -23,7 +23,7 @@ class Dataset(data.Dataset):
                                              transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
                                              ])
         if self.test:
-            with open(self.root + 'sample_human_testing_labels.txt', encoding="utf-8") as f:
+            with open(self.root, encoding="utf-8") as f:
                 lines = f.readlines()
             lines = lines[2:]
             for line in lines:

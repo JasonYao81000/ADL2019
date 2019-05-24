@@ -134,3 +134,4 @@ hw4/FID_evaluation/*.tar.gz
 hw4/images/*
 hw4/checkpoints/*
 hw4/test_images/*
+hw4/test_images_fid/*
