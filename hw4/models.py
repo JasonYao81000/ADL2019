@@ -28,7 +28,7 @@ class Generator(nn.Module):
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(64, opt.channels, 3, stride=1, padding=1),
-            nn.Sigmoid(),
+            nn.Tanh(),
         )
 
     def forward(self, noise, labels):

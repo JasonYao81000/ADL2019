@@ -19,7 +19,9 @@ class Dataset(data.Dataset):
         self.test = test
         self.root = root
         self.transform = transforms.Compose([transforms.RandomHorizontalFlip(p=0.5),
-                                             transforms.ToTensor()])
+                                             transforms.ToTensor(),
+                                             transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
+                                             ])
         if self.test:
             with open(self.root + 'sample_human_testing_labels.txt', encoding="utf-8") as f:
                 lines = f.readlines()
@@ -39,10 +41,7 @@ class Dataset(data.Dataset):
 
     def __len__(self):
         'Denotes the total number of samples'
-        if self.test:
-            return len(self.labels)
-        else:
-            return len(self.list_IDs)
+        return self.labels.shape[0]
 
     def __getitem__(self, index):
         'Generates one sample of data'

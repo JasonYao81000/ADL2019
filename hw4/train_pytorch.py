@@ -33,9 +33,9 @@ def main():
     parser.add_argument("--data_path", type=str, default='./selected_cartoonset100k/', help="data path")
     parser.add_argument("--test_path", type=str, default='./sample_test/', help="test path")
     parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
-    parser.add_argument("--test", type=bool, default=False, help="test")
+    parser.add_argument("--test", action='store_true', default=False, help="test")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
-    parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
+    parser.add_argument("--n_epochs", type=int, default=1000, help="number of epochs of training")
     parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
     parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
@@ -56,28 +56,7 @@ def main():
     
     # Initialize generator and discriminator
     generator = Generator(opt)
-    discriminator = Discriminator(opt)
-    
-    print(opt.test)
-    if opt.test:
-        generator = torch.load(os.path.join(opt.ckpt_dir, 'generator.cpt'))
-        generator.eval()
-        discriminator = torch.load(os.path.join(opt.ckpt_dir, 'discriminator.cpt'))
-        discriminator.eval()
-        dataset = Dataset(opt.test, opt.test_path)       
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
-                                             shuffle=True, num_workers=opt.num_workers)
-        for i, labels in enumerate(dataloader):
-            batch_size = labels.size(0)
-            z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, opt.latent_dim))))
-            labels = Variable(labels.type(torch.cuda.FloatTensor))
-            # Generate a batch of images
-            gen_imgs = generator(z, labels)
-            for img in gen_imgs:
-                save_image(img, "test_images/%d.png" % (i), normalize=True, range=(0, 1))
-        exit()
-        
-        
+    discriminator = Discriminator(opt)      
     
     if not os.path.exists(opt.ckpt_dir):
         os.makedirs(opt.ckpt_dir, exist_ok=True)
@@ -95,6 +74,30 @@ def main():
     # Initialize weights
     generator.apply(weights_init_normal)
     discriminator.apply(weights_init_normal)
+    
+    
+    print(opt.test)
+    if opt.test:
+        generator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'generator.cpt')))
+        generator.eval()
+        discriminator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'discriminator.cpt')))
+        discriminator.eval()
+        dataset = Dataset(opt.test, opt.test_path)       
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
+                                             shuffle=False, num_workers=opt.num_workers)
+        sample_index = 0
+        for i, labels in enumerate(dataloader):
+            batch_size = labels.size(0)
+            z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, opt.latent_dim))))
+            labels = Variable(labels.type(torch.cuda.FloatTensor))
+            # Generate a batch of images
+            gen_imgs = generator(z, labels)
+            for img in gen_imgs:
+                save_image(img, "test_images/%d.png" % (sample_index), normalize=True, range=(-1, 1))
+                sample_index += 1
+        os.system('python ./sample_test/merge_images.py ' + './test_images/')
+        return
+    
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
@@ -209,8 +212,8 @@ def main():
             if batches_done % opt.sample_interval == 0:
                 sample_image(n_row=8, batches_done=batches_done)
                 
-        torch.save(generator, opt.ckpt_dir + 'generator.cpt')
-        torch.save(discriminator, opt.ckpt_dir + 'discriminator.cpt')
+        torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
+        torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')
 
 
 if __name__ == '__main__':
