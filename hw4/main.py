@@ -32,7 +32,7 @@ def parse():
                         help='manual step number (useful on restarts)')
     parser.add_argument('-z', '--z-dim', default=100, type=int, metavar='N',
                         help='dimension of z')
-    parser.add_argument('--disc-iter', default=5, type=int, metavar='N',
+    parser.add_argument('--disc-iter', default=2, type=int, metavar='N',
                         help='number of updates to discriminator for every update to generator')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='acgan',
                         choices=['acgan', 'wacgan'],
@@ -295,7 +295,7 @@ def run(args):
             batch_d_acc_glasses = sum(batch_d_accs_glasses) / len(batch_d_accs_glasses)
             batch_time = time.time() - start_time
 
-            print("[Epoch %d/%d][Batch %d/%d][D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f][G loss: %.4f][elapsed time: %.2fs]" % \
+            print("[Epoch %d/%d][Batch %d/%d][D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f][G loss: %.4f][Time: %.2fs]" % \
                 (epoch, args.epochs, batch_idx, len(dataloader), batch_d_loss, batch_d_acc_hair, batch_d_acc_eye, batch_d_acc_face, batch_d_acc_glasses, batch_g_loss, batch_time), end='\r')
         print()
         
