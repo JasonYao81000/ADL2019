@@ -18,7 +18,7 @@ INCEPTION_FINAL_POOL = 'pool_3:0'
 INCEPTION_DEFAULT_IMAGE_SIZE = 299
 ACTIVATION_DIM = 2048
 
-BATCH_SIZE = 1
+BATCH_SIZE = 32
 TEST_SIZE = 5000
 
 assert len(sys.argv)==2, "Input the directory of the generated images [gen_samples/]"
@@ -55,8 +55,8 @@ def get_fid(sess, fake_dir):
     
     dataset = tf.data.Dataset.from_tensor_slices(fns)
     dataset = dataset.map(load_and_preprocess_image).batch(BATCH_SIZE)
-#    iterator = tf.data.make_one_shot_iterator(dataset)
-    iterator = dataset.make_one_shot_iterator() # for TF version < 1.13
+    iterator = tf.data.make_one_shot_iterator(dataset)
+#    iterator = dataset.make_one_shot_iterator() # for TF version < 1.13
     
     images = iterator.get_next() # [N, H, W, C]
     activations = inception_activations(images)

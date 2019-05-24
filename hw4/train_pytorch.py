@@ -1,7 +1,7 @@
 import argparse
 import os
 import numpy as np
-
+import time
 
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
@@ -39,8 +39,8 @@ def main():
     parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
     parser.add_argument("--test", action='store_true', default=False, help="test")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
-    parser.add_argument("--n_epochs", type=int, default=1000, help="number of epochs of training")
-    parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
+    parser.add_argument("--n_epochs", type=int, default=2000, help="number of epochs of training")
+    parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
     parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
@@ -150,7 +150,7 @@ def main():
             for line in gen_labels:
                 s = [str(i) for i in line]  
                 res = " ".join(s)
-                f.writelines(res)
+                f.writelines(res+'\n')
         
     
     # ----------
@@ -167,7 +167,19 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
                                              shuffle=True, num_workers=opt.num_workers)
     
+    epoch_g_losses = []
+    epoch_d_losses = []
+    epoch_d_acc = []
+    epoch_time = []
+    epoch_obvious = []
+    record_acc = -1
+    
     for epoch in range(opt.n_epochs):
+        start_time = time.time()
+        batch_g_losses = []
+        batch_d_losses = []
+        batch_d_acc = []
+        
         for i, (imgs, labels) in enumerate(dataloader):
     
             batch_size = imgs.shape[0]
@@ -230,27 +242,64 @@ def main():
             # Calculate discriminator accuracy
             pred = np.concatenate([real_aux.data.cpu().numpy(), fake_aux.data.cpu().numpy()], axis=0)
             gt = np.concatenate([labels.data.cpu().numpy(), gen_labels.data.cpu().numpy()], axis=0)
-            acc_hair = np.argmax(pred[0:6], axis=1) == gt[0:6]
-            acc_eyes = np.argmax(pred[6:10], axis=1) == gt[6:10]
-            acc_face = np.argmax(pred[10:13], axis=1) == gt[10:13]
-            acc_glasses = np.argmax(pred[13:15], axis=1) == gt[13:15]
+#            print(pred)
+#            print(gt)
+            acc_hair = np.argmax(pred[0:6], axis=0) == np.argmax(gt[0:6])
+            acc_eyes = np.argmax(pred[6:10], axis=0) == np.argmax(gt[6:10])
+            acc_face = np.argmax(pred[10:13], axis=0) == np.argmax(gt[10:13])
+            acc_glasses = np.argmax(pred[13:15], axis=0) == np.argmax(gt[13:15])
+#            print(acc_hair)
+#            print(acc_eyes)
             d_acc = np.mean(acc_hair + acc_eyes + acc_face + acc_glasses)
     
             d_loss.backward()
             optimizer_D.step()
-    
+            
+            batch_time = time.time()-start_time
             print(
-                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f, acc: %d%%] [G loss: %f]"
-                % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), 100 * d_acc, g_loss.item()), end="\r"
+                "[Epoch %d/%d] [Batch %d/%d] [D loss: %f, G loss: %f] [acc: %d%%] [time: %.2fs]"
+                % (epoch, opt.n_epochs, i, len(dataloader), d_loss.item(), g_loss.item(), 100 * d_acc, batch_time), end="\r"
             )
             batches_done = epoch * len(dataloader) + i
             if batches_done % opt.sample_interval == 0:
                 sample_image(n_row=12, batches_done=batches_done)
+            batch_g_losses.append(g_loss.item())
+            batch_d_losses.append(d_loss.item())
+            batch_d_acc.append(d_acc)
+        
+        a = np.mean(np.array(batch_d_acc))
+        g = np.mean(np.array(batch_g_losses))
+        d = np.mean(np.array(batch_d_losses))
+        
+        epoch_time.append(time.time())
+        epoch_g_losses.append(g)
+        epoch_d_losses.append(d)
+        epoch_d_acc.append(a)
+        epoch_obvious.append(g*d)
+        print()
+        
+        print(
+                "[Epoch %d/%d] [D loss: %f, G loss: %f] [acc: %d%%] [GD: %f]"
+                % (epoch, opt.n_epochs, d, g, 100 * a, g*d), end="\r"
+            )
         
         print()
-                
-        torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
-        torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')
+        batch_g_losses = []
+        batch_d_losses = []
+        batch_d_acc = []
+        
+        if record_acc <= a:
+            torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
+            torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')
+            print("save_model")
+            print()
+            record_acc = a
+            
+        np.save(os.path.join(opt.ckpt_dir, 'epoch_g_losses.npy'), np.array(epoch_g_losses))
+        np.save(os.path.join(opt.ckpt_dir, 'epoch_d_losses.npy'), np.array(epoch_d_losses))
+        np.save(os.path.join(opt.ckpt_dir, 'epoch_d_acc.npy'), np.array(epoch_d_acc))
+        np.save(os.path.join(opt.ckpt_dir, 'epoch_time.npy'), np.array(epoch_time))
+        
 
 
 if __name__ == '__main__':
