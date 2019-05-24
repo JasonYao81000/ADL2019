@@ -12,6 +12,11 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
+# WARNING: Automatically reboot when set cudnn.benchmark to True on Windows.
+if os.name != 'nt':
+    import torch.backends.cudnn as cudnn
+    cudnn.benchmark = True
+
 import image_generator
 import acgan
 
@@ -21,7 +26,7 @@ def parse():
                         help='random seed for torch and numpy')
     parser.add_argument('-j', '--workers', default=6, type=int, metavar='N', 
                         help='number of data loading workers (default: 6)')
-    parser.add_argument('--epochs', default=200, type=int, metavar='N',
+    parser.add_argument('--epochs', default=2000, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual step number (useful on restarts)')

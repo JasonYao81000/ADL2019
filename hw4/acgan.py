@@ -20,9 +20,10 @@ class Generator(nn.Module):
         self.eye_emb = nn.Embedding(len(datasets.attr_eye), z_dim // 4)
         self.face_emb = nn.Embedding(len(datasets.attr_face), z_dim // 4)
         self.glasses_emb = nn.Embedding(len(datasets.attr_glasses), z_dim // 4)
+        self.hidden_emb = nn.Linear(z_dim, z_dim, bias=False)
 
         self.init_size = IMAGE_SIZE // 4  # Initial size before upsampling
-        self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
+        self.l1 = nn.Sequential(nn.Linear(z_dim * 2, 128 * self.init_size ** 2))
 
         self.conv_blocks = nn.Sequential(
             nn.BatchNorm2d(128),
@@ -44,7 +45,7 @@ class Generator(nn.Module):
             self.eye_emb(eye_idxes), 
             self.face_emb(face_idxes), 
             self.glasses_emb(glasses_idxes)), dim=-1)
-        gen_input = torch.mul(embedding, noise)
+        gen_input = torch.cat((embedding, self.hidden_emb(noise)), dim=-1)
         out = self.l1(gen_input)
         out = out.view(out.shape[0], 128, self.init_size, self.init_size)
         img = self.conv_blocks(out)
