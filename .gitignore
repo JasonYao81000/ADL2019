@@ -133,3 +133,4 @@ hw4/FID_evaluation/*.npy
 hw4/FID_evaluation/*.tar.gz
 hw4/images/*
 hw4/checkpoints/*
+hw4/test_images/*

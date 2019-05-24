@@ -17,7 +17,6 @@ from loaddata import Dataset
 
 
 os.makedirs("images", exist_ok=True)
-os.makedirs("test_images", exist_ok=True)
     
 def weights_init_normal(m):
     classname = m.__class__.__name__
@@ -31,9 +30,7 @@ def weights_init_normal(m):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default='./selected_cartoonset100k/', help="data path")
-    parser.add_argument("--test_path", type=str, default='./sample_test/', help="test path")
     parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
-    parser.add_argument("--test", type=bool, default=False, help="test")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
     parser.add_argument("--n_epochs", type=int, default=200, help="number of epochs of training")
     parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
@@ -51,40 +48,15 @@ def main():
     
     cuda = True if torch.cuda.is_available() else False
     
-    FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
-    LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
-    
-    # Initialize generator and discriminator
-    generator = Generator(opt)
-    discriminator = Discriminator(opt)
-    
-    print(opt.test)
-    if opt.test:
-        generator = torch.load(os.path.join(opt.ckpt_dir, 'generator.cpt'))
-        generator.eval()
-        discriminator = torch.load(os.path.join(opt.ckpt_dir, 'discriminator.cpt'))
-        discriminator.eval()
-        dataset = Dataset(opt.test, opt.test_path)       
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
-                                             shuffle=True, num_workers=opt.num_workers)
-        for i, labels in enumerate(dataloader):
-            batch_size = labels.size(0)
-            z = Variable(FloatTensor(np.random.normal(0, 1, (batch_size, opt.latent_dim))))
-            labels = Variable(labels.type(torch.cuda.FloatTensor))
-            # Generate a batch of images
-            gen_imgs = generator(z, labels)
-            for img in gen_imgs:
-                save_image(img, "test_images/%d.png" % (i), normalize=True, range=(0, 1))
-        exit()
-        
-        
-    
-    if not os.path.exists(opt.ckpt_dir):
-        os.makedirs(opt.ckpt_dir, exist_ok=True)
+    os.makedirs(opt.ckpt_dir, exist_ok=True)
     
     # Loss functions
     adversarial_loss = torch.nn.BCELoss()
     auxiliary_loss = torch.nn.BCELoss()
+    
+    # Initialize generator and discriminator
+    generator = Generator(opt)
+    discriminator = Discriminator(opt)
     
     if cuda:
         generator.cuda()
@@ -98,7 +70,10 @@ def main():
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2)) 
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+    
+    FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor 
     
     
     def sample_image(n_row, batches_done):
@@ -124,11 +99,11 @@ def main():
     # ----------
     #  Training
     # ----------
-    
+
 
     # Configure data loader
     #os.makedirs("../../data/mnist", exist_ok=True)
-    dataset = Dataset(opt.test, opt.data_path)
+    dataset = Dataset(opt.data_path)
         
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size,
                                              shuffle=True, num_workers=opt.num_workers)
