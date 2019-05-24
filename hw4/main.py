@@ -66,8 +66,8 @@ def parse():
                         help='path to the latest checkpoint (default: last.ckpt)')
     parser.add_argument('--ckpt_best', default='best.ckpt', type=str, metavar='PATH',
                         help='path to the best checkpoint (default: best.ckpt)')
-    parser.add_argument('--save_freq', type=int, default=1, help='saving last model frequency')
-    parser.add_argument('--eval_freq', type=int, default=1, help='evaluation frequency')
+    parser.add_argument('--save_freq', type=int, default=5, help='saving last model frequency')
+    parser.add_argument('--eval_freq', type=int, default=5, help='evaluation frequency')
     parser.add_argument('--test_fid_freq', type=int, default=1, help='testing fid frequency')
     parser.add_argument('--gpu', type=int, default=[0], nargs='+', help='used gpu')
     parser.add_argument('--mode', default='train', choices=['train', 'test_fid', 'test_human'],
@@ -165,6 +165,25 @@ def run(args):
         np.random.normal(0, 1, 
         (len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), 
         args.z_dim))))
+
+    # Generate evaluation attributes
+    eval_hair_idxes = []
+    eval_eye_idxes = []
+    eval_face_idxes = []
+    eval_glasses_idxes = []
+    for hair_idx in range(len(datasets.attr_hair)):
+        for eye_idx in range(len(datasets.attr_eye)):
+            for face_idx in range(len(datasets.attr_face)):
+                for glasses_idx in range(len(datasets.attr_glasses)):
+                    eval_hair_idxes.append(hair_idx)
+                    eval_eye_idxes.append(eye_idx)
+                    eval_face_idxes.append(face_idx)
+                    eval_glasses_idxes.append(glasses_idx)
+    # Transfer evaluation inputs to CUDA
+    eval_hair_idxes = Variable(torch.cuda.LongTensor(eval_hair_idxes))
+    eval_eye_idxes = Variable(torch.cuda.LongTensor(eval_eye_idxes))
+    eval_face_idxes = Variable(torch.cuda.LongTensor(eval_face_idxes))
+    eval_glasses_idxes = Variable(torch.cuda.LongTensor(eval_glasses_idxes))
 
     epoch_g_losses = []
     epoch_d_losses = []
@@ -299,24 +318,6 @@ def run(args):
             print('Evaluating...')
             generator.eval()
             discriminator.eval()
-            # Generate evaluation attributes
-            eval_hair_idxes = []
-            eval_eye_idxes = []
-            eval_face_idxes = []
-            eval_glasses_idxes = []
-            for hair_idx in range(len(datasets.attr_hair)):
-                for eye_idx in range(len(datasets.attr_eye)):
-                    for face_idx in range(len(datasets.attr_face)):
-                        for glasses_idx in range(len(datasets.attr_glasses)):
-                            eval_hair_idxes.append(hair_idx)
-                            eval_eye_idxes.append(eye_idx)
-                            eval_face_idxes.append(face_idx)
-                            eval_glasses_idxes.append(glasses_idx)
-            # Transfer input to CUDA
-            eval_hair_idxes = Variable(torch.cuda.LongTensor(eval_hair_idxes))
-            eval_eye_idxes = Variable(torch.cuda.LongTensor(eval_eye_idxes))
-            eval_face_idxes = Variable(torch.cuda.LongTensor(eval_face_idxes))
-            eval_glasses_idxes = Variable(torch.cuda.LongTensor(eval_glasses_idxes))
             with torch.no_grad():
                 gen_imgs = generator(fixed_z, eval_hair_idxes, eval_eye_idxes, eval_face_idxes, eval_glasses_idxes)
             
