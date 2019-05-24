@@ -204,12 +204,11 @@ def run(args):
         batch_d_accs_face = []
         batch_d_accs_glasses = []
         for batch_idx, (images, labels, hair_idxes, eye_idxes, face_idxes, glasses_idxes) in enumerate(dataloader):
-            # Skip the last batch
-            if images.size(0) != args.batch_size: continue
+            batch_size = images.size(0)
             
             # Adversarial ground truths
-            valid = Variable(torch.cuda.FloatTensor(args.batch_size, 1).fill_(1.0), requires_grad=False)
-            fake = Variable(torch.cuda.FloatTensor(args.batch_size, 1).fill_(0.0), requires_grad=False)
+            valid = Variable(torch.cuda.FloatTensor(batch_size, 1).fill_(1.0), requires_grad=False)
+            fake = Variable(torch.cuda.FloatTensor(batch_size, 1).fill_(0.0), requires_grad=False)
 
             # Transfer input to CUDA
             real_imgs = Variable(images.type(torch.cuda.FloatTensor))
@@ -222,11 +221,11 @@ def run(args):
             # Update the generator
             optimizer_G.zero_grad()
             # Sample noise and labels as generator input
-            z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (args.batch_size, args.z_dim))))
-            gen_hair_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_hair), args.batch_size)))
-            gen_eye_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_eye), args.batch_size)))
-            gen_face_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_face), args.batch_size)))
-            gen_glasses_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_glasses), args.batch_size)))
+            z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
+            gen_hair_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_hair), batch_size)))
+            gen_eye_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_eye), batch_size)))
+            gen_face_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_face), batch_size)))
+            gen_glasses_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_glasses), batch_size)))
             # Generate a batch of images
             gen_imgs = generator(z, gen_hair_idxes, gen_eye_idxes, gen_face_idxes, gen_glasses_idxes)
             # Loss measures generator's ability to fool the discriminator
