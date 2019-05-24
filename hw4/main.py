@@ -51,8 +51,10 @@ def parse():
                         help='path to checkpoints folder')
     parser.add_argument('--eval_dir', default='./eval_images', type=str, metavar='PATH',
                         help='path to evaluation folder')
-    parser.add_argument('--test_image_dir', default='./sample_test/images', type=str, metavar='PATH',
-                        help='path to test images folder')
+    parser.add_argument('--test_fid_image_dir', default='./sample_test/fid_images', type=str, metavar='PATH',
+                        help='path to test fid images folder')
+    parser.add_argument('--test_human_image_dir', default='./sample_test/human_images', type=str, metavar='PATH',
+                        help='path to test human images folder')
     parser.add_argument('--resume', default='last.ckpt', type=str, metavar='PATH',
                         help='path to the latest checkpoint (default: last.ckpt)')
     parser.add_argument('--ckpt_last', default='last.ckpt', type=str, metavar='PATH',
@@ -71,7 +73,7 @@ def parse():
     args = parser.parse_args()
     return args
 
-def test_fid(args, generator, discriminator, test_dataloader):
+def test(args, generator, discriminator, test_dataloader, image_dir):
     image_idx = 0
     for batch_idx, (labels, hair_idxes, eye_idxes, face_idxes, glasses_idxes) in enumerate(test_dataloader):
         batch_size = labels.size(0)
@@ -87,7 +89,7 @@ def test_fid(args, generator, discriminator, test_dataloader):
         gen_imgs = generator(z, hair_idxes, eye_idxes, face_idxes, glasses_idxes)
         # Plot the generated images
         for img in gen_imgs:
-            save_image(img, args.test_image_dir + '/%d.png' % (image_idx), normalize=True, range=(-1, 1))
+            save_image(img, image_dir + '/%d.png' % (image_idx), normalize=True, range=(-1, 1))
             image_idx += 1
 
 def run(args):
@@ -100,8 +102,10 @@ def run(args):
         os.makedirs(args.ckpt_dir)
     if not os.path.exists(args.eval_dir):
         os.makedirs(args.eval_dir)
-    if not os.path.exists(args.test_image_dir):
-        os.makedirs(args.test_image_dir)
+    if not os.path.exists(args.test_fid_image_dir):
+        os.makedirs(args.test_fid_image_dir)
+    if not os.path.exists(args.test_human_image_dir):
+        os.makedirs(args.test_human_image_dir)
 
     # Create image generator for cartoon dataset.
     datasets = image_generator.Dataset(args.image_dir, args.seed)
@@ -127,7 +131,7 @@ def run(args):
     else:
         raise ModuleNotFoundError
 
-    if args.mode == 'test_fid':
+    if args.mode == 'test_fid' or args.mode == 'test_human':
         print('Loading generator from', os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last), '...')
         generator.load_state_dict(torch.load(os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last)))
         generator.eval()
@@ -135,16 +139,17 @@ def run(args):
         discriminator.load_state_dict(torch.load(os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last)))
         discriminator.eval()
         print('Creating test data loader...')
-        test_datasets = image_generator.Dataset(args.test_fid_file, args.seed, test=True)
+        test_file = args.test_fid_file if args.mode == 'test_fid' else args.test_human_file
+        test_datasets = image_generator.Dataset(test_file, args.seed, test=True)
         test_dataloader = torch.utils.data.DataLoader(
             test_datasets, 
             batch_size=args.batch_size,
             num_workers=args.workers,
-            shuffle=True, pin_memory=True)
-        test_fid(args, generator, discriminator, test_dataloader)
+            shuffle=False, pin_memory=True)
+        image_dir = args.test_fid_image_dir if args.mode == 'test_fid' else args.test_human_image_dir
+        test(args, generator, discriminator, test_dataloader, image_dir)
+        if args.mode == 'test_human': os.system('python ./sample_test/merge_images.py ' + args.test_human_image_dir)
         return
-    elif args.mode == 'test_human':
-        raise NotImplementedError
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
@@ -165,6 +170,8 @@ def run(args):
     epoch_time = []
     for epoch in range(args.start_epoch, args.epochs):
         # Training an epoch
+        generator.train()
+        discriminator.train()
         start_time = time.time()
         batch_g_losses = []
         batch_d_losses = []
@@ -285,6 +292,8 @@ def run(args):
         
         if epoch % args.eval_freq == 0:
             print('Evaluating...')
+            generator.eval()
+            discriminator.eval()
             # Generate evaluation attributes
             eval_hair_idxes = []
             eval_eye_idxes = []
