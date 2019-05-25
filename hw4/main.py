@@ -12,10 +12,8 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
-# WARNING: Automatically reboot when set cudnn.benchmark to True on Windows.
-if os.name != 'nt':
-    import torch.backends.cudnn as cudnn
-    cudnn.benchmark = True
+import torch.backends.cudnn as cudnn
+cudnn.benchmark = True
 
 import image_generator
 import acgan
@@ -325,7 +323,18 @@ def run(args):
             generator.eval()
             discriminator.eval()
             with torch.no_grad():
-                gen_imgs = generator(fixed_z, eval_hair_idxes, eval_eye_idxes, eval_face_idxes, eval_glasses_idxes)
+                gen_imgs = []
+                for batch_start in range(0, eval_hair_idxes.shape[0], args.batch_size):
+                    batch_end = batch_start + args.batch_size
+                    if batch_end > eval_hair_idxes.shape[0]: batch_end = eval_hair_idxes.shape[0]
+                    batch_gen_imgs = generator(
+                        fixed_z[batch_start:batch_end], 
+                        eval_hair_idxes[batch_start:batch_end], 
+                        eval_eye_idxes[batch_start:batch_end], 
+                        eval_face_idxes[batch_start:batch_end], 
+                        eval_glasses_idxes[batch_start:batch_end])
+                    gen_imgs.append(batch_gen_imgs)
+                gen_imgs = torch.cat(gen_imgs, dim=0)
             
             # Plot the generated images
             nrow = int(np.sqrt(len(gen_imgs)))
