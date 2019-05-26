@@ -30,7 +30,7 @@ def parse():
                         help='manual step number (useful on restarts)')
     parser.add_argument('-z', '--z-dim', default=100, type=int, metavar='N',
                         help='dimension of z')
-    parser.add_argument('--disc-iter', default=2, type=int, metavar='N',
+    parser.add_argument('--disc-iter', default=1, type=int, metavar='N',
                         help='number of updates to discriminator for every update to generator')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='acgan',
                         choices=['acgan', 'wacgan'],
@@ -235,11 +235,11 @@ def run(args):
             gen_imgs = generator(z, gen_hair_idxes, gen_eye_idxes, gen_face_idxes, gen_glasses_idxes)
             # Loss measures generator's ability to fool the discriminator
             validity, pred_aux_hair, pred_aux_eye, pred_aux_face, pred_aux_glasses = discriminator(gen_imgs)
-            g_loss = (adversarial_loss(validity, valid) + 
+            g_loss = (8 * adversarial_loss(validity, valid) + 
                 (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
                 auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
                 auxiliary_loss(pred_aux_face, gen_face_idxes) + 
-                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes)) / 4) / 2
+                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 12
             g_loss.backward()
             optimizer_G.step()
             
@@ -248,18 +248,18 @@ def run(args):
                 optimizer_D.zero_grad()
                 # Loss for real images
                 real_pred, real_aux_hair, real_aux_eye, real_aux_face, real_aux_glasses = discriminator(real_imgs)
-                d_real_loss = (adversarial_loss(real_pred, valid) + 
+                d_real_loss = (8 * adversarial_loss(real_pred, valid) + 
                     (auxiliary_loss(real_aux_hair, hair_idxes) + 
                     auxiliary_loss(real_aux_eye, eye_idxes) + 
                     auxiliary_loss(real_aux_face, face_idxes) + 
-                    auxiliary_loss(real_aux_glasses, glasses_idxes)) / 4) / 2
+                    auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
                 # Loss for fake images
                 fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
-                d_fake_loss = (adversarial_loss(fake_pred, fake) + 
+                d_fake_loss = (8 * adversarial_loss(fake_pred, fake) + 
                     (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
-                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes)) / 4) / 2
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
                 # Total discriminator loss
                 d_loss = (d_real_loss + d_fake_loss) / 2
                 d_loss.backward()
