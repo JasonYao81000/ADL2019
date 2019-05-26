@@ -39,15 +39,13 @@ def parse():
                         ' (default: acgan)')
     parser.add_argument('--loss', default='bce', type=str,
                         help='loss function')
-    parser.add_argument('-b', '--batch_size', default=32, type=int,
-                        metavar='N', help='mini-batch size per process (default: 32)')
+    parser.add_argument('-b', '--batch_size', default=16, type=int,
+                        metavar='N', help='mini-batch size per process (default: 16)')
     parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float,
                         metavar='LR', help='Initial learning rate.')
     parser.add_argument("--b1", default=0.5, type=float, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", default=0.999, type=float, help="adam: decay of second order momentum of gradient")
     parser.add_argument("--clip_value", default=0.01, type=float, help="lower and upper clip value for disc. weights")
-    parser.add_argument('--display_freq', '-p', default=100, type=int,
-                        metavar='N', help='display frequency (default: 100)')
     parser.add_argument('--image_dir', default='./selected_cartoonset100k', type=str, metavar='PATH',
                         help='path to images folder')
     parser.add_argument('--ckpt_dir', default='./checkpoints', type=str, metavar='PATH',
@@ -64,6 +62,8 @@ def parse():
                         help='path to the latest checkpoint (default: last.ckpt)')
     parser.add_argument('--ckpt_best', default='best.ckpt', type=str, metavar='PATH',
                         help='path to the best checkpoint (default: best.ckpt)')
+    parser.add_argument('--display_freq', '-p', default=100, type=int, metavar='N', 
+                        help='display frequency (default: 100)')
     parser.add_argument('--save_freq', type=int, default=5, help='saving last model frequency')
     parser.add_argument('--eval_freq', type=int, default=5, help='evaluation frequency')
     parser.add_argument('--test_fid_freq', type=int, default=1, help='testing fid frequency')
@@ -293,8 +293,9 @@ def run(args):
             batch_d_acc_glasses = sum(batch_d_accs_glasses) / len(batch_d_accs_glasses)
             batch_time = time.time() - start_time
 
-            print("[Epoch %d/%d][Batch %d/%d][D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f][G loss: %.4f][Time: %.2fs]" % \
-                (epoch, args.epochs, batch_idx, len(dataloader), batch_d_loss, batch_d_acc_hair, batch_d_acc_eye, batch_d_acc_face, batch_d_acc_glasses, batch_g_loss, batch_time), end='\r')
+            if batch_idx % args.display_freq == 0 or batch_idx == len(dataloader) - 1:
+                print("[Epoch %d/%d][Batch %d/%d][D loss: %.4f, acc: %.4f/%.4f/%.4f/%.4f][G loss: %.4f][Time: %.2fs]" % \
+                    (epoch, args.epochs, batch_idx, len(dataloader), batch_d_loss, batch_d_acc_hair, batch_d_acc_eye, batch_d_acc_face, batch_d_acc_glasses, batch_g_loss, batch_time), end='\r')
         print()
         
         # Collect the training log for an epoch
