@@ -87,8 +87,8 @@ def test(args, generator, discriminator, test_dataloader, image_dir):
         face_idxes = Variable(face_idxes.type(torch.cuda.LongTensor))
         glasses_idxes = Variable(glasses_idxes.type(torch.cuda.LongTensor))
         # Sample noise as generator input
-        # z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
-        z = Variable(torch.cuda.FloatTensor(np.random.binomial(n=1, p=0.5, size=(batch_size, args.z_dim))))
+        z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
+        # z = Variable(torch.cuda.FloatTensor(np.random.binomial(n=1, p=0.5, size=(batch_size, args.z_dim))))
         # Generate a batch of images
         gen_imgs = generator(z, hair_idxes, eye_idxes, face_idxes, glasses_idxes)
         # Plot the generated images
@@ -163,12 +163,12 @@ def run(args):
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(args.b1, args.b2))
 
     # The fixed z for evaluation
-    # fixed_z = Variable(torch.cuda.FloatTensor(
-    #     np.random.normal(0, 1, 
-    #     (len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), 
-    #     args.z_dim))))
     fixed_z = Variable(torch.cuda.FloatTensor(
-        np.random.binomial(n=1, p=0.5, size=(len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), args.z_dim))))
+        np.random.normal(0, 1, 
+        (len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), 
+        args.z_dim))))
+    # fixed_z = Variable(torch.cuda.FloatTensor(
+    #     np.random.binomial(n=1, p=0.5, size=(len(datasets.attr_hair) * len(datasets.attr_eye) * len(datasets.attr_face) * len(datasets.attr_glasses), args.z_dim))))
 
     # Generate evaluation attributes
     eval_hair_idxes = []
@@ -225,8 +225,8 @@ def run(args):
             # Update the generator
             optimizer_G.zero_grad()
             # Sample noise and labels as generator input
-            # z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
-            z = Variable(torch.cuda.FloatTensor(np.random.binomial(n=1, p=0.5, size=(batch_size, args.z_dim))))
+            z = Variable(torch.cuda.FloatTensor(np.random.normal(0, 1, (batch_size, args.z_dim))))
+            # z = Variable(torch.cuda.FloatTensor(np.random.binomial(n=1, p=0.5, size=(batch_size, args.z_dim))))
             gen_hair_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_hair), batch_size)))
             gen_eye_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_eye), batch_size)))
             gen_face_idxes = Variable(torch.cuda.LongTensor(np.random.randint(0, len(datasets.attr_face), batch_size)))

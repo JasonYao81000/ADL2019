@@ -16,14 +16,14 @@ class Generator(nn.Module):
     def __init__(self, z_dim, datasets):
         super(Generator, self).__init__()
 
-        self.hair_emb = nn.Embedding(len(datasets.attr_hair), z_dim // 4)
-        self.eye_emb = nn.Embedding(len(datasets.attr_eye), z_dim // 4)
-        self.face_emb = nn.Embedding(len(datasets.attr_face), z_dim // 4)
-        self.glasses_emb = nn.Embedding(len(datasets.attr_glasses), z_dim // 4)
+        self.hair_encoded = torch.eye(len(datasets.attr_hair)).cuda()
+        self.eye_encoded = torch.eye(len(datasets.attr_eye)).cuda()
+        self.face_encoded = torch.eye(len(datasets.attr_face)).cuda()
+        self.glasses_encoded = torch.eye(len(datasets.attr_glasses)).cuda()
         self.hidden_emb = nn.Linear(z_dim, z_dim, bias=False)
 
         self.init_size = IMAGE_SIZE // 4  # Initial size before upsampling
-        self.l1 = nn.Sequential(nn.Linear(z_dim * 2, 128 * self.init_size ** 2))
+        self.l1 = nn.Sequential(nn.Linear(z_dim + datasets.labels.shape[1], 128 * self.init_size ** 2))
 
         self.conv_blocks = nn.Sequential(
             nn.BatchNorm2d(128),
@@ -40,12 +40,12 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise, hair_idxes, eye_idxes, face_idxes, glasses_idxes):
-        embedding = torch.cat((
-            self.hair_emb(hair_idxes), 
-            self.eye_emb(eye_idxes), 
-            self.face_emb(face_idxes), 
-            self.glasses_emb(glasses_idxes)), dim=-1)
-        gen_input = torch.cat((embedding, self.hidden_emb(noise)), dim=-1)
+        labels = torch.cat((
+            self.hair_encoded[hair_idxes].cuda(), 
+            self.eye_encoded[eye_idxes].cuda(), 
+            self.face_encoded[face_idxes].cuda(), 
+            self.glasses_encoded[glasses_idxes].cuda()), dim=-1)
+        gen_input = torch.cat((labels, self.hidden_emb(noise)), dim=-1)
         out = self.l1(gen_input)
         out = out.view(out.shape[0], 128, self.init_size, self.init_size)
         img = self.conv_blocks(out)
