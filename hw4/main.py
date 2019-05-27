@@ -135,7 +135,7 @@ def run(args):
         discriminator.apply(acgan.weights_init_normal)
     elif args.arch == 'acgan_resnet':
         generator = acgan_resnet.Generator(args.z_dim, datasets).cuda()
-        discriminator = acgan_resnet.Discriminator(datasets).cuda()
+        discriminator = acgan.Discriminator(datasets).cuda()
     else:
         raise ModuleNotFoundError
 
