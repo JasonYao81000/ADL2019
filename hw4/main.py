@@ -17,7 +17,7 @@ cudnn.benchmark = True
 
 import image_generator
 import acgan
-import acgan_resnet
+import resnet_generator
 
 def parse():
     parser = argparse.ArgumentParser(description="pytorch spectral normalization gan on cartoonset")
@@ -34,9 +34,9 @@ def parse():
     parser.add_argument('--disc-iter', default=1, type=int, metavar='N',
                         help='number of updates to discriminator for every update to generator')
     parser.add_argument('--arch', '-a', metavar='ARCH', default='acgan',
-                        choices=['acgan', 'acgan_resnet'],
+                        choices=['acgan', 'resnet'],
                         help='model architecture: ' +
-                        ' | '.join(['acgan', 'acgan_resnet']) +
+                        ' | '.join(['acgan', 'resnet']) +
                         ' (default: acgan)')
     parser.add_argument('--loss', default='bce', type=str,
                         help='loss function')
@@ -133,8 +133,8 @@ def run(args):
         discriminator = acgan.Discriminator(datasets).cuda()
         generator.apply(acgan.weights_init_normal)
         discriminator.apply(acgan.weights_init_normal)
-    elif args.arch == 'acgan_resnet':
-        generator = acgan_resnet.Generator(args.z_dim, datasets).cuda()
+    elif args.arch == 'resnet':
+        generator = resnet_generator.Generator(args.z_dim, datasets).cuda()
         discriminator = acgan.Discriminator(datasets).cuda()
     else:
         raise ModuleNotFoundError
