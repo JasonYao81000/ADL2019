@@ -308,7 +308,7 @@ def run(args):
         epoch_d_acc_glasses.append(batch_d_acc_glasses)
         epoch_time.append(batch_time)
 
-        if epoch % args.save_freq == 0:
+        if epoch % args.save_freq == 0 or epoch == args.epochs - 1:
             print('Saving the last models...')
             torch.save(discriminator.state_dict(), os.path.join(args.ckpt_dir, 'disc_' + args.ckpt_last))
             torch.save(generator.state_dict(), os.path.join(args.ckpt_dir, 'gen_' + args.ckpt_last))
@@ -320,7 +320,7 @@ def run(args):
             np.save(os.path.join(args.ckpt_dir, 'epoch_d_acc_glasses.npy'), np.array(epoch_d_acc_glasses))
             np.save(os.path.join(args.ckpt_dir, 'epoch_time.npy'), np.array(epoch_time))
         
-        if epoch % args.eval_freq == 0:
+        if epoch % args.eval_freq == 0 or epoch == args.epochs - 1:
             print('Evaluating...')
             generator.eval()
             discriminator.eval()
