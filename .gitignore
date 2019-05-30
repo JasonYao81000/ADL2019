@@ -135,3 +135,5 @@ hw4/images/*
 hw4/checkpoints/*
 hw4/test_images/*
 hw4/test_images_fid/*
+hw4/h4
+hw4_wgp

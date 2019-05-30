@@ -39,8 +39,8 @@ def main():
     parser.add_argument("--ckpt_dir", type=str, default='./checkpoints/', help="ckpt path")
     parser.add_argument("--test", action='store_true', default=False, help="test")
     parser.add_argument("--num_workers", type=int, default=6, help="number of workers")
-    parser.add_argument("--n_epochs", type=int, default=2000, help="number of epochs of training")
-    parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
+    parser.add_argument("--n_epochs", type=int, default=300000, help="number of epochs of training")
+    parser.add_argument("--batch_size", type=int, default=16, help="size of the batches")
     parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
     parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
     parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
@@ -174,6 +174,7 @@ def main():
     epoch_obvious = []
     record_acc = -1
     record_gd = 1000
+    save_m = 1
     for epoch in range(opt.n_epochs):
         start_time = time.time()
         batch_g_losses = []
@@ -286,21 +287,21 @@ def main():
         batch_d_losses = []
         batch_d_acc = []
         
-        if record_acc <= a:
-            torch.save(generator.state_dict(), opt.ckpt_dir + 'generator_acc.cpt')
-            torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator_acc.cpt')
-            print("save_accmodel")
-            print()
-            record_acc = a
-        if record_gd >= g*d:
-            torch.save(generator.state_dict(), opt.ckpt_dir + 'generator_gd.cpt')
-            torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator_gd.cpt')
-            print("save_gdmodel")
-            print()
-            record_gd = g*d
+#        if record_acc <= a:
+#            torch.save(generator.state_dict(), opt.ckpt_dir + 'generator_acc.cpt')
+#            torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator_acc.cpt')
+#            print("save_accmodel")
+#            print()
+#            record_acc = a
+        torch.save(generator.state_dict(), opt.ckpt_dir + 'generator_%d.cpt' % save_m)
+        torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator_%d.cpt' % save_m)
+        print("save_gdmodel")
+        print()
+        save_m += 1
+#            record_gd = g*d
         
-        torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
-        torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')
+#        torch.save(generator.state_dict(), opt.ckpt_dir + 'generator.cpt')
+#        torch.save(discriminator.state_dict(), opt.ckpt_dir + 'discriminator.cpt')
             
         np.save(os.path.join(opt.ckpt_dir, 'epoch_g_losses.npy'), np.array(epoch_g_losses))
         np.save(os.path.join(opt.ckpt_dir, 'epoch_d_losses.npy'), np.array(epoch_d_losses))
