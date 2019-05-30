@@ -17,11 +17,11 @@ class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, upsample=None, groups=1,
-                 base_width=512, dilation=1, norm_layer=None):
+                 base_width=256, dilation=1, norm_layer=None):
         super(BasicBlock, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
-        if groups != 1 or base_width != 512:
+        if groups != 1 or base_width != 256:
             raise ValueError('BasicBlock only supports groups=1 and base_width=128')
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
@@ -52,23 +52,22 @@ class BasicBlock(nn.Module):
 
 class ResNet(nn.Module):
     def __init__(self, block, layers, zero_init_residual=False,
-                 groups=1, width_per_group=512,
+                 groups=1, width_per_group=256,
                  norm_layer=None):
         super(ResNet, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
-        self.inplanes = 512
+        self.inplanes = 256
         self.dilation = 1
         
         self.groups = groups
         self.base_width = width_per_group
         self.upsample = nn.Upsample(scale_factor=2)
-        self.layer1 = self._make_layer(block, 512, layers[0])
-        self.layer2 = self._make_layer(block, 256, layers[1])
-        self.layer3 = self._make_layer(block, 128, layers[2])
-        self.layer4 = self._make_layer(block, 64, layers[3])
+        self.layer1 = self._make_layer(block, 256, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1])
+        self.layer3 = self._make_layer(block, 64, layers[2])
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -123,8 +122,6 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.upsample(x)
         x = self.layer3(x)
-        x = self.upsample(x)
-        x = self.layer4(x)
 
         return x
 
@@ -142,13 +139,13 @@ class Generator(nn.Module):
         self.glasses_encoded = torch.eye(len(datasets.attr_glasses)).cuda()
         self.hidden_emb = nn.Linear(z_dim, z_dim, bias=False)
 
-        self.init_size = IMAGE_SIZE // 16  # Initial size before upsampling
-        self.l1 = nn.Sequential(nn.Linear(z_dim + datasets.labels.shape[1], 512 * self.init_size ** 2))
+        self.init_size = IMAGE_SIZE // 8  # Initial size before upsampling
+        self.l1 = nn.Sequential(nn.Linear(z_dim + datasets.labels.shape[1], 256 * self.init_size ** 2))
 
-        self.resnet = _resnet('resnet', BasicBlock, [2, 2, 2, 2])
+        self.resnet = _resnet('resnet', BasicBlock, [2, 2, 2])
 
         self.conv_blocks = nn.Sequential(
-            nn.BatchNorm2d(512),
+            nn.BatchNorm2d(256),
             self.resnet,
             nn.Conv2d(64, IMAGE_CHANNELS, 3, stride=1, padding=1),
             nn.Tanh(),
@@ -162,6 +159,6 @@ class Generator(nn.Module):
             self.glasses_encoded[glasses_idxes].cuda()), dim=-1)
         gen_input = torch.cat((labels, self.hidden_emb(noise)), dim=-1)
         out = self.l1(gen_input)
-        out = out.view(out.shape[0], 512, self.init_size, self.init_size)
+        out = out.view(out.shape[0], 256, self.init_size, self.init_size)
         img = self.conv_blocks(out)
         return img
