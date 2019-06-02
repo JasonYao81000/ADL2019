@@ -39,8 +39,7 @@ def parse():
                         help='model architecture: ' +
                         ' | '.join(['acgan', 'resnet']) +
                         ' (default: acgan)')
-    parser.add_argument('--loss', default='bce', type=str,
-                        help='loss function')
+    parser.add_argument('--loss', default='bce', type=str, help='adversarial loss function')
     parser.add_argument('-b', '--batch_size', default=16, type=int,
                         metavar='N', help='mini-batch size per process (default: 16)')
     parser.add_argument('--lr', '--learning-rate', default=2e-4, type=float,
@@ -125,7 +124,7 @@ def run(args):
         shuffle=True, pin_memory=True)
     
     # Loss functions
-    adversarial_loss = torch.nn.BCELoss().cuda()
+    # adversarial_loss = torch.nn.BCELoss().cuda()
     auxiliary_loss = torch.nn.CrossEntropyLoss().cuda()
 
     # Build generator and discriminator, then initialize weights.
@@ -237,7 +236,14 @@ def run(args):
             gen_imgs = generator(z, gen_hair_idxes, gen_eye_idxes, gen_face_idxes, gen_glasses_idxes)
             # Loss measures generator's ability to fool the discriminator
             validity, pred_aux_hair, pred_aux_eye, pred_aux_face, pred_aux_glasses = discriminator(gen_imgs)
-            g_loss = (8 * adversarial_loss(validity, valid) + 
+            if args.loss == 'bce':
+                g_loss = (8 * torch.nn.BCELoss()(validity, valid) + 
+                (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
+                auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
+                auxiliary_loss(pred_aux_face, gen_face_idxes) + 
+                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 12
+            elif args.loss == 'wasserstein':
+                g_loss = (8 * -validity.mean() + 
                 (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
                 auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
                 auxiliary_loss(pred_aux_face, gen_face_idxes) + 
@@ -250,14 +256,28 @@ def run(args):
                 optimizer_D.zero_grad()
                 # Loss for real images
                 real_pred, real_aux_hair, real_aux_eye, real_aux_face, real_aux_glasses = discriminator(real_imgs)
-                d_real_loss = (8 * adversarial_loss(real_pred, valid) + 
-                    (auxiliary_loss(real_aux_hair, hair_idxes) + 
-                    auxiliary_loss(real_aux_eye, eye_idxes) + 
-                    auxiliary_loss(real_aux_face, face_idxes) + 
-                    auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
+                if args.loss == 'bce':
+                    d_real_loss = (8 * torch.nn.BCELoss()(real_pred, valid) + 
+                        (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                        auxiliary_loss(real_aux_eye, eye_idxes) + 
+                        auxiliary_loss(real_aux_face, face_idxes) + 
+                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
+                elif args.loss == 'wasserstein':
+                    d_real_loss = (8 * -real_pred.mean() + 
+                        (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                        auxiliary_loss(real_aux_eye, eye_idxes) + 
+                        auxiliary_loss(real_aux_face, face_idxes) + 
+                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
                 # Loss for fake images
                 fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
-                d_fake_loss = (8 * adversarial_loss(fake_pred, fake) + 
+                if args.loss == 'bce':
+                    d_fake_loss = (8 * torch.nn.BCELoss()(fake_pred, fake) + 
+                    (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
+                    auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
+                    auxiliary_loss(fake_aux_face, gen_face_idxes) + 
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
+                elif args.loss == 'wasserstein':
+                    d_fake_loss = (8 * fake_pred.mean() + 
                     (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
