@@ -223,16 +223,6 @@ def run(args):
             face_idxes = Variable(face_idxes.type(torch.cuda.LongTensor))
             glasses_idxes = Variable(glasses_idxes.type(torch.cuda.LongTensor))
 
-            # Produce wrong labels on the real images.
-            hair_idxes_offset = torch.randint(1, len(datasets.attr_hair), (batch_size,)).cuda()
-            eye_idxes_offset = torch.randint(1, len(datasets.attr_eye), (batch_size,)).cuda()
-            face_idxes_offset = torch.randint(1, len(datasets.attr_face), (batch_size,)).cuda()
-            glasses_idxes_offset = torch.randint(1, len(datasets.attr_glasses), (batch_size,)).cuda()
-            wrong_hair_idxes = (hair_idxes + hair_idxes_offset).fmod(len(datasets.attr_hair))
-            wrong_eye_idxes = (eye_idxes + eye_idxes_offset).fmod(len(datasets.attr_eye))
-            wrong_face_idxes = (face_idxes + face_idxes_offset).fmod(len(datasets.attr_face))
-            wrong_glasses_idxes = (glasses_idxes + glasses_idxes_offset).fmod(len(datasets.attr_glasses))
-
             # Update the generator
             optimizer_G.zero_grad()
             # Sample noise and labels as generator input
@@ -284,27 +274,6 @@ def run(args):
                         auxiliary_loss(real_aux_eye, eye_idxes) + 
                         auxiliary_loss(real_aux_face, face_idxes) + 
                         auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
-                
-                # Loss for wrong labels on the real images.
-                if args.loss == 'bce':
-                    d_wrong_loss = (8 * torch.nn.BCELoss()(real_pred, valid) - 
-                        (auxiliary_loss(real_aux_hair, wrong_hair_idxes) + 
-                        auxiliary_loss(real_aux_eye, wrong_eye_idxes) + 
-                        auxiliary_loss(real_aux_face, wrong_face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, wrong_glasses_idxes))) / 12
-                elif args.loss == 'hinge':
-                    d_wrong_loss = (8 * nn.ReLU()(1.0 - real_pred.mean()) - 
-                        (auxiliary_loss(real_aux_hair, wrong_hair_idxes) + 
-                        auxiliary_loss(real_aux_eye, wrong_eye_idxes) + 
-                        auxiliary_loss(real_aux_face, wrong_face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, wrong_glasses_idxes))) / 12
-                elif args.loss == 'wasserstein':
-                    d_wrong_loss = (8 * -real_pred.mean() - 
-                        (auxiliary_loss(real_aux_hair, wrong_hair_idxes) + 
-                        auxiliary_loss(real_aux_eye, wrong_eye_idxes) + 
-                        auxiliary_loss(real_aux_face, wrong_face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, wrong_glasses_idxes))) / 12
-
                 # Loss for fake images
                 fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
                 if args.loss == 'bce':
@@ -326,7 +295,7 @@ def run(args):
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
                     auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
                 # Total discriminator loss
-                d_loss = (d_real_loss + d_wrong_loss + d_fake_loss) / 3
+                d_loss = (d_real_loss + d_fake_loss) / 2
                 d_loss.backward()
                 optimizer_D.step()
                 # Calculate discriminator accuracy
