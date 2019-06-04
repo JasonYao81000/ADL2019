@@ -237,7 +237,7 @@ def run(args):
             # Loss measures generator's ability to fool the discriminator
             validity, pred_aux_hair, pred_aux_eye, pred_aux_face, pred_aux_glasses = discriminator(gen_imgs)
             if args.loss == 'bce':
-                g_loss = (8 * torch.nn.BCELoss()(validity, valid) + 
+                g_loss = (8 * torch.nn.BCEWithLogitsLoss()(validity, valid) + 
                 (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
                 auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
                 auxiliary_loss(pred_aux_face, gen_face_idxes) + 
@@ -257,7 +257,7 @@ def run(args):
                 # Loss for real images
                 real_pred, real_aux_hair, real_aux_eye, real_aux_face, real_aux_glasses = discriminator(real_imgs)
                 if args.loss == 'bce':
-                    d_real_loss = (8 * torch.nn.BCELoss()(real_pred, valid) + 
+                    d_real_loss = (8 * torch.nn.BCEWithLogitsLoss()(real_pred, valid) + 
                         (auxiliary_loss(real_aux_hair, hair_idxes) + 
                         auxiliary_loss(real_aux_eye, eye_idxes) + 
                         auxiliary_loss(real_aux_face, face_idxes) + 
@@ -277,7 +277,7 @@ def run(args):
                 # Loss for fake images
                 fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
                 if args.loss == 'bce':
-                    d_fake_loss = (8 * torch.nn.BCELoss()(fake_pred, fake) + 
+                    d_fake_loss = (8 * torch.nn.BCEWithLogitsLoss()(fake_pred, fake) + 
                     (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 

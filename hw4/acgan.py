@@ -73,7 +73,7 @@ class Discriminator(nn.Module):
         ds_size = IMAGE_SIZE // 2 ** 4
 
         # Output layers
-        self.adv_layer = nn.Sequential(nn.Linear(128 * ds_size ** 2, 1), nn.Sigmoid())
+        self.adv_layer = nn.Sequential(nn.Linear(128 * ds_size ** 2, 1))
         self.aux_layer_hair = nn.Sequential(nn.Linear(128 * ds_size ** 2, len(datasets.attr_hair)), nn.Softmax(dim=-1))
         self.aux_layer_eye = nn.Sequential(nn.Linear(128 * ds_size ** 2, len(datasets.attr_eye)), nn.Softmax(dim=-1))
         self.aux_layer_face = nn.Sequential(nn.Linear(128 * ds_size ** 2, len(datasets.attr_face)), nn.Softmax(dim=-1))
