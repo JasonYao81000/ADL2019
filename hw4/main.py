@@ -237,17 +237,17 @@ def run(args):
             # Loss measures generator's ability to fool the discriminator
             validity, pred_aux_hair, pred_aux_eye, pred_aux_face, pred_aux_glasses = discriminator(gen_imgs)
             if args.loss == 'bce':
-                g_loss = (8 * torch.nn.BCEWithLogitsLoss()(validity, valid) + 
-                (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
+                g_loss = (torch.nn.BCEWithLogitsLoss()(validity, valid) + 
+                2 * (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
                 auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
                 auxiliary_loss(pred_aux_face, gen_face_idxes) + 
-                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 12
+                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 9
             elif args.loss == 'hinge' or args.loss == 'wasserstein':
-                g_loss = (8 * -validity.mean() + 
-                (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
+                g_loss = (-validity.mean() + 
+                2 * (auxiliary_loss(pred_aux_hair, gen_hair_idxes) + 
                 auxiliary_loss(pred_aux_eye, gen_eye_idxes) + 
                 auxiliary_loss(pred_aux_face, gen_face_idxes) + 
-                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 12
+                auxiliary_loss(pred_aux_glasses, gen_glasses_idxes))) / 9
             g_loss.backward()
             optimizer_G.step()
             
@@ -257,43 +257,43 @@ def run(args):
                 # Loss for real images
                 real_pred, real_aux_hair, real_aux_eye, real_aux_face, real_aux_glasses = discriminator(real_imgs)
                 if args.loss == 'bce':
-                    d_real_loss = (8 * torch.nn.BCEWithLogitsLoss()(real_pred, valid) + 
-                        (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                    d_real_loss = (torch.nn.BCEWithLogitsLoss()(real_pred, valid) + 
+                        2 * (auxiliary_loss(real_aux_hair, hair_idxes) + 
                         auxiliary_loss(real_aux_eye, eye_idxes) + 
                         auxiliary_loss(real_aux_face, face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
+                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 9
                 elif args.loss == 'hinge':
-                    d_real_loss = (8 * nn.ReLU()(1.0 - real_pred.mean()) + 
-                        (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                    d_real_loss = (nn.ReLU()(1.0 - real_pred.mean()) + 
+                        2 * (auxiliary_loss(real_aux_hair, hair_idxes) + 
                         auxiliary_loss(real_aux_eye, eye_idxes) + 
                         auxiliary_loss(real_aux_face, face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
+                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 9
                 elif args.loss == 'wasserstein':
-                    d_real_loss = (8 * -real_pred.mean() + 
-                        (auxiliary_loss(real_aux_hair, hair_idxes) + 
+                    d_real_loss = (-real_pred.mean() + 
+                        2 * (auxiliary_loss(real_aux_hair, hair_idxes) + 
                         auxiliary_loss(real_aux_eye, eye_idxes) + 
                         auxiliary_loss(real_aux_face, face_idxes) + 
-                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 12
+                        auxiliary_loss(real_aux_glasses, glasses_idxes))) / 9
                 # Loss for fake images
                 fake_pred, fake_aux_hair, fake_aux_eye, fake_aux_face, fake_aux_glasses = discriminator(gen_imgs.detach())
                 if args.loss == 'bce':
-                    d_fake_loss = (8 * torch.nn.BCEWithLogitsLoss()(fake_pred, fake) + 
-                    (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
+                    d_fake_loss = (torch.nn.BCEWithLogitsLoss()(fake_pred, fake) + 
+                    2 * (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
-                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 9
                 elif args.loss == 'hinge':
-                    d_fake_loss = (8 * nn.ReLU()(1.0 + fake_pred.mean()) + 
-                    (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
+                    d_fake_loss = (nn.ReLU()(1.0 + fake_pred.mean()) + 
+                    2 * (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
-                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 9
                 elif args.loss == 'wasserstein':
-                    d_fake_loss = (8 * fake_pred.mean() + 
-                    (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
+                    d_fake_loss = (fake_pred.mean() + 
+                    2 * (auxiliary_loss(fake_aux_hair, gen_hair_idxes) + 
                     auxiliary_loss(fake_aux_eye, gen_eye_idxes) + 
                     auxiliary_loss(fake_aux_face, gen_face_idxes) + 
-                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 12
+                    auxiliary_loss(fake_aux_glasses, gen_glasses_idxes))) / 9
                 # Total discriminator loss
                 d_loss = (d_real_loss + d_fake_loss) / 2
                 d_loss.backward()
