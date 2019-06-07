@@ -25,13 +25,14 @@ $ pip install tensorflow-gpu==1.13
         * `selected_cartoonset100k/cartoon_attr.txt`
 
 ## 2. Evaluation
-* FID Score
-    * Both real and generated images are embedded into a **feature space** given by (a specific layer) of **Inception Net**
-    * Simple Baseline: **FID Score <= 180**
-    * Strong Baseline: **FID Score <= 120**
-* Human
-    * See `sample_test/sample_human_testing_labels.txt`
-    * TAs will grade on the 144 * 5 generated images (i.e. 5 images for each of the combination of attributes)
+### FID Score
+* Both real and generated images are embedded into a **feature space** given by (a specific layer) of **Inception Net**
+* Simple Baseline: **FID Score <= 180**
+* Strong Baseline: **FID Score <= 120**
+
+### Human
+* See `sample_test/sample_human_testing_labels.txt`
+* TAs will grade on the 144 * 5 generated images (i.e. 5 images for each of the combination of attributes)
 
 ## 3. Train Condiction GANs
 ```bash
@@ -41,7 +42,42 @@ $ python main.py --arch resnet --loss hinge --ckpt_dir ./checkpoints/resnet_hing
 $ python main.py --arch resnet --ckpt_dir ./checkpoints/resnet_1000 --eval_dir ./eval_images/resnet_1000 --epochs 1000
 ```
 
-## 4. Evaluate Condiction GANs
+## 4. Training Tips for Improvement
+* [x] ACGAN with hidden concat
+* [x] Resnet-based ACGAN
+* [x] Adversarial Loss
+    * [x] BCE Loss
+    * [ ] Wasserstein (WGAN)
+    * [x] Hinge Loss
+* [x] Spectral Normalization
+    - [torch.nn.utils.spectral_norm](https://pytorch.org/docs/stable/_modules/torch/nn/utils/spectral_norm.html)
+* [x] Smaller batch size + more iterations
+* [x] Normalize the inputs
+    - Normalize the images between -1 and 1 
+    - Tanh as the last layer of the generator output
+* [x] Sample Noise
+    * [x] Use a Uniform distribution 
+    * [ ] Use a Bernoulli distribution 
+    * [ ] Use a spherical Z 
+        - Don't sample from a Uniform distribution 
+        - Sample from a gaussian distribution 
+        - When doing interpolations, do the interpolation via a great circle, rather than a straight line from point A to point B 
+        - Tom White's Sampling Generative Networks ref code https://github.com/dribnet/plat has more details 
+* [x] BatchNorm
+    - Construct different mini-batches for real and fake, i.e. each mini-batch needs to contain only all real images or all generated images. 
+    - When batchnorm is not an option use instance normalization (for each sample, subtract mean and divide by standard deviation). 
+* [x] Avoid Sparse Gradients: ReLU, MaxPool
+    - The stability of the GAN game suffers if you have sparse gradients
+    - LeakyReLU = good (in both G and D)
+    - For Downsampling, use: Average Pooling, Conv2d + stride
+    - For Upsampling, use: PixelShuffle, ConvTranspose2d + stride
+      - PixelShuffle: https://arxiv.org/abs/1609.05158
+* [x] Train discriminator more (sometimes) 
+    - Especially when you have noise
+    - Hard to find a schedule of number of D iterations vs G iterations
+* [ ] [More Tips](https://github.com/soumith/ganhacks)
+
+## 5. Evaluate Condiction GANs
 ```bash
 $ python main.py --mode test_human --ckpt_dir ./checkpoints/acgan_500
 $ mv ./results*.png ./eval_images/acgan_500
@@ -75,7 +111,7 @@ $ python run_fid.py ../sample_test/fid_images
 FID score: 68.600
 ```
 
-## FID Scores
+## 6. FID Scores
 
 | Architecture | Loss | Epochs | FID Score | Note |
 | ------------ | ---- | ------ | --------- | ---- |
@@ -84,65 +120,65 @@ FID score: 68.600
 | Resnet-based ACGAN | Hinge | 500 | 142.319 | resnet_hinge_500 |
 | Resnet-based ACGAN | BCE | 1000 | 68.600 | resnet_1000 |
 
-## Training Progress
+## 7. Training Progress
 
-1. ACGAN (acgan_500)
+### ACGAN (acgan_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/acgan_500/acgan_500.gif" width="100%">
 
-2. Resnet-based ACGAN with BCE loss (resnet_500)
+### Resnet-based ACGAN with BCE loss (resnet_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_500/resnet_500.gif" width="100%">
 
-3. Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
+### Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_hinge_500/resnet_hinge_500.gif" width="100%">
 
-4. Resnet-based ACGAN with BCE loss (resnet_1000)
+### Resnet-based ACGAN with BCE loss (resnet_1000)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/resnet_1000.gif" width="100%">
 
-## Loss and Accuracy
+## 8. Loss and Accuracy
 
-1. ACGAN (acgan_500)
+### ACGAN (acgan_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/acgan_500_accs.png" width="100%">
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/acgan_500_losses.png" width="100%">
 
-2. Resnet-based ACGAN with BCE loss (resnet_500)
+### Resnet-based ACGAN with BCE loss (resnet_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_500_accs.png" width="100%">
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_500_losses.png" width="100%">
 
-3. Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
+### Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_hinge_500_accs.png" width="100%">
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_hinge_500_losses.png" width="100%">
 
-4. Resnet-based ACGAN with BCE loss (resnet_1000)
+### Resnet-based ACGAN with BCE loss (resnet_1000)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_1000_accs.png" width="100%">
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/results/resnet_1000_losses.png" width="100%">
 
-## Human Evaluation Results
+## 9. Human Evaluation Results
 
-1. ACGAN (acgan_500)
+### ACGAN (acgan_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/acgan_500/results2.png" width="100%">
 
-2. Resnet-based ACGAN with BCE loss (resnet_500)
+### Resnet-based ACGAN with BCE loss (resnet_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_500/results2.png" width="100%">
 
-3. Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
+### Resnet-based ACGAN with Hinge loss (resnet_hinge_500)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_hinge_500/results2.png" width="100%">
 
-4. Resnet-based ACGAN with BCE loss (resnet_1000)
+### Resnet-based ACGAN with BCE loss (resnet_1000)
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/results2.png" width="100%">
 
