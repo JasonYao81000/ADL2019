@@ -45,15 +45,15 @@ Browse this [course website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/index.
 ## 3. Deep Reinforcement Learning
 * [README](https://github.com/JasonYao81000/ADL2019/tree/master/hw3#adl2019hw3)
 
-### 1. Policy Gradient
+### 3.1. Policy Gradient
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000000.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000001.gif" width="40%">
 
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000008.gif" width="40%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/pg-ppo/openaigym.video.0.13592.video000027.gif" width="40%">
 
-### 2. Deep Q-Learning (DQN)
+### 3.2. Deep Q-Learning (DQN)
 <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000000.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000001.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000008.gif" width="25%"><img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/dqn/openaigym.video.0.19364.video000027.gif" width="25%">
 
-### 3. Actor-Critic
+### 3.3. Actor-Critic
 
 | World\Stage |  1  |  2  |  3  |  4  |
 | :---------: | :-: | :-: | :-: | :-: |
@@ -69,10 +69,10 @@ Browse this [course website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/index.
 ## 4. Conditional Generative Adversarial Nets
 * [README](https://github.com/JasonYao81000/ADL2019/tree/master/hw4#adl2019hw4)
 
-### 1. Training Progress
+### 4.1. Training Progress
 * Resnet-based ACGAN with BCE loss (resnet_1000)
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/resnet_1000.gif" width="100%">
+   <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/resnet_1000.gif" width="100%">
 
-### 2. Human Evaluation Results
+### 4.2. Human Evaluation Results
 * Resnet-based ACGAN with BCE loss (resnet_1000)
-<img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/results2.png" width="100%">
+   <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw4/eval_images/resnet_1000/results2.png" width="100%">
