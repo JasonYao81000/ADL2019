@@ -67,6 +67,7 @@ Browse this [course website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/index.
 | 8 | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-1-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-2-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-3-v0.gif"> | <img src="https://github.com/JasonYao81000/ADL2019/blob/master/hw3/results/a2c-all-all/SuperMarioBros-8-4-v0.gif"> |
 
 ## 4. Conditional Generative Adversarial Nets
+* [README](https://github.com/JasonYao81000/ADL2019/tree/master/hw4#adl2019hw4)
 
 ### 1. Training Progress
 * Resnet-based ACGAN with BCE loss (resnet_1000)
