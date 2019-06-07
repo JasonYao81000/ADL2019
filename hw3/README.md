@@ -1,4 +1,7 @@
 # ADL2019/hw3
+Deep Reinforcement Learning
+* [Homework 3 Website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/A3)
+* [Homework 3 Slide](https://docs.google.com/presentation/d/1qUNvX2x5C1m45ctLPWDAoIEry3tBqkqAZRjrrgDWoU0/edit#slide=id.p)
 
 ## 0. Requirements
 * Install VC++ via Microsoft Visual Studio on the Windows.
