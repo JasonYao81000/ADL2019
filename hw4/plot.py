@@ -41,5 +41,9 @@ def plot_accs(ckpt_dir, results_dir, arch):
 
 plot_losses('./checkpoints/acgan_500/', results_dir, 'acgan_500')
 plot_accs('./checkpoints/acgan_500/', results_dir, 'acgan_500')
+plot_losses('./checkpoints/resnet_500/', results_dir, 'resnet_500')
+plot_accs('./checkpoints/resnet_500/', results_dir, 'resnet_500')
+plot_losses('./checkpoints/resnet_hinge_500/', results_dir, 'resnet_hinge_500')
+plot_accs('./checkpoints/resnet_hinge_500/', results_dir, 'resnet_hinge_500')
 plot_losses('./checkpoints/resnet_1000/', results_dir, 'resnet_1000')
 plot_accs('./checkpoints/resnet_1000/', results_dir, 'resnet_1000')
