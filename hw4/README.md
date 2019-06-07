@@ -1,5 +1,7 @@
 # ADL2019/hw4
-Conditional Image Generation
+Conditional Generative Adversarial Nets
+* [Homework 4 Website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/A4)
+* [Homework 4 Slide](https://docs.google.com/presentation/d/1_yeXarwOc4gzech_p7dIqIMJ5kxlf3nhYaG8WuBZ2ms/edit#slide=id.g52160a344b_3_8)
 
 ## 0. Requirements
 ```bash
