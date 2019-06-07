@@ -1,4 +1,12 @@
 # ADL2019/hw1
+Dialogue Modeling
+* [Homework 1 Website](https://www.csie.ntu.edu.tw/~miulab/s107-adl/A1)
+* [Homework 1 Slide](https://docs.google.com/presentation/d/15LCy7TkJXl2pdz394gSPKY-fkwA3wFusv7h01lWOMSw/edit#slide=id.p)
+* [Kaggle Competition](https://www.kaggle.com/c/adl2019-homework-1)
+    * Public Leaderboard Rank: 1/99
+    * Private Leaderboard Rank: 2/99
+* [Example Code](https://drive.google.com/file/d/1KLOEg7x64BAIk8nFJwXaf9eczGjV667e/view)
+* [Data](https://www.kaggle.com/c/13262/download-all)
 
 ## 0. Requirements
 ```
@@ -59,3 +67,5 @@ python predict.py ../models/bigru_batt_5_max_focal/ --epoch -1
 | BiLSTM     | Bahdanau         | 4 | Max  | MLP | Focal | 0.7522 | 9.37333 |
 | BiLSTM     | Bahdanau         | 5 | Max  | MLP | Focal | 0.7490 | 9.43333 |
 | BiLSTM     | Bahdanau         | 4 | Mean | MLP | Focal | 0.7426 | 9.40666 |
+
+###### tags: `NTU` `ADL` `2019`
