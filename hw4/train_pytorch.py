@@ -12,7 +12,8 @@ from torch.autograd import Variable
 
 import torch
 
-from models import Generator, Discriminator
+from resnet_generator import Generator
+from resnet_discriminator import Discriminator
 from loaddata import Dataset 
 
 import torch.backends.cudnn as cudnn
@@ -81,10 +82,12 @@ def main():
     
     
     print(opt.test)
+    epn = 767
     if opt.test:
-        generator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'generator.cpt')))
+#        for ep in range(1,600):
+        generator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'generator_%d.cpt' % epn)))
         generator.eval()
-        discriminator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'discriminator.cpt')))
+        discriminator.load_state_dict(torch.load(os.path.join(opt.ckpt_dir, 'discriminator_%d.cpt' % epn)))
         discriminator.eval()
         if opt.mode == 'human':
             test_path = opt.test_path + 'sample_human_testing_labels.txt'
@@ -108,8 +111,13 @@ def main():
             for img in gen_imgs:
                 save_image(img, image_dir + "%d.png" % (sample_index), normalize=True, range=(-1, 1))
                 sample_index += 1
+        if opt.mode == 'fid':
+            with open('FID2.txt', 'a') as f:
+                f.writelines('Epoch_%d:   ' % epn)
+            os.system('python ./run_fid.py ' + './test_images_fid/')
         if opt.mode == 'human':
             os.system('python ./sample_test/merge_images.py ' + './test_images/')
+#        epn -= 1
         return
     
 
@@ -118,11 +126,9 @@ def main():
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2)) 
     
     
-    def sample_image(n_row, batches_done):
+    def sample_image(n_row, fix_z, batches_done):
         """Saves a grid of generated digits ranging from 0 to n_classes"""
         batch_size = n_row ** 2
-        # Sample noise
-        z = Variable(FloatTensor(np.random.normal(0, 1, (n_row ** 2, opt.latent_dim))))
         
         eval_hair_idxes = []
         eval_eye_idxes = []
@@ -143,14 +149,16 @@ def main():
         gen_labels[np.arange(batch_size), eval_face_idxes] = 1
         gen_labels[np.arange(batch_size), eval_glasses_idxes] = 1
         gen_labels = Variable(FloatTensor(gen_labels))
-        gen_imgs = generator(z, gen_labels)
+        with torch.no_grad():
+            gen_imgs = []
+            for start in range(0, gen_labels.shape[0], opt.batch_size):
+                end = start + opt.batch_size
+                if end > gen_labels.shape[0]: end = gen_labels.shape[0]
+                batch_gen_images = generator(fix_z[start:end], gen_labels[start:end])
+                gen_imgs.append(batch_gen_images)
+            gen_imgs = torch.cat(gen_imgs, dim=0)
+#        gen_imgs = generator(z, gen_labels)
         save_image(gen_imgs.data, "images/%d.png" % batches_done, nrow=n_row, normalize=True)
-        gen_labels = gen_labels.tolist()
-        with open('./images/' + '%d.txt' % batches_done, 'w') as f:
-            for line in gen_labels:
-                s = [str(i) for i in line]  
-                res = " ".join(s)
-                f.writelines(res+'\n')
         
     
     # ----------
@@ -175,6 +183,8 @@ def main():
     record_acc = -1
     record_gd = 1000
     save_m = 1
+    n_row = 12
+    fix_z = Variable(FloatTensor(np.random.normal(0, 1, (n_row ** 2, opt.latent_dim))))
     for epoch in range(opt.n_epochs):
         start_time = time.time()
         batch_g_losses = []
@@ -215,7 +225,7 @@ def main():
     
             # Generate a batch of images
             gen_imgs = generator(z, gen_labels)
-    
+#            print(gen_imgs.size())
             # Loss measures generator's ability to fool the discriminator
             validity, pred_label = discriminator(gen_imgs)
             g_loss = 0.5 * (adversarial_loss(validity, valid) + auxiliary_loss(pred_label, gen_labels))
@@ -261,7 +271,7 @@ def main():
             )
             batches_done = epoch * len(dataloader) + i
             if batches_done % opt.sample_interval == 0:
-                sample_image(n_row=12, batches_done=batches_done)
+                sample_image(n_row=n_row, fix_z=fix_z, batches_done=batches_done)
             batch_g_losses.append(g_loss.item())
             batch_d_losses.append(d_loss.item())
             batch_d_acc.append(d_acc)
